@@ -832,7 +832,7 @@ let intervalId = null;
 let isRunning = false;
 let readyToStart = false;
 
-const startDelay = 100;
+const startDelay = 50;
 
 // HTML
 const pblListEl = document.getElementById("results");
@@ -855,6 +855,7 @@ function getLocalStorageData() {
         for(k of selectedPBL) {
             document.getElementById(k).classList.add("checked")
         }
+        generateScramble()
     } else {
         console.log("Nothing...")
     }
@@ -886,6 +887,9 @@ function init() {
         })
         .then((data) => {
             generators = data;
+            // Load local storage data only after generators
+            // have been loaded, so we can generate a scramble
+            getLocalStorageData()
         })
         .catch((error) => console.error("Failed to fetch data:", error));
 
@@ -914,20 +918,19 @@ function init() {
             saveToLocalStorage()
         });
     });
-
-    // Try to load selected pbls from local storage
-    getLocalStorageData()
 }
 
 function updateSelection() {
     selectedPBL = []
-    for(k of possiblePBL) {
-        const e = document.getElementById(k)
+    for([t, b] of possiblePBL) {
+        const e = document.getElementById(`${t}/${b}`)
         if(e.classList.contains("checked")) {
             selectedPBL.push(e.id)
         }
     }
     saveToLocalStorage()
+    if(!hasActiveScramble || selectedPBL.length == 0)
+        generateScramble()
 }
 
 function passesFilter(pbl, filter) {
@@ -949,6 +952,7 @@ function generateScramble() {
     if (selectedPBL.length == 0) {
         timerEl.textContent = "--:--";
         currentScrambleEl.textContent = "Scramble will show up here";
+        scrambleList = []
         hasActiveScramble = false;
         return;
     }
@@ -976,8 +980,9 @@ function generateScramble() {
     ).replaceAll("/", " / ");
     if (scrambleList.length != 0)
         previousScrambleEl.textContent = "Previous scramble : " + scrambleList[scrambleList.length - 1];
-    if(!hasActiveScramble)
+    if(!hasActiveScramble) {
         timerEl.textContent = "0.00"
+    }
     currentScrambleEl.textContent = final;
     scrambleList.push(final);
     hasActiveScramble = true;
@@ -1054,7 +1059,7 @@ selectTheseEl.addEventListener("click", () => {
             selectedPBL.push(i.id)
         }
     }
-    saveToLocalStorage()
+    updateSelection()
 });
 
 deselectTheseEl.addEventListener("click", () => {
@@ -1065,11 +1070,13 @@ deselectTheseEl.addEventListener("click", () => {
 });
 
 prevScrambleButton.addEventListener("click", () => {
+    if(scrambleList.length == 0) return
     scrambleOffset = Math.min(scrambleOffset + 1, scrambleList.length - 1)
     currentScrambleEl.textContent =scrambleList[scrambleList.length - 1 - scrambleOffset];
 });
 
 nextScrambleButton.addEventListener("click", () => {
+    if(scrambleList.length == 0) return
     scrambleOffset--;
     if (scrambleOffset < 0) {
         scrambleOffset = 0
