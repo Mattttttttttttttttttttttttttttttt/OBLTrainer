@@ -934,17 +934,21 @@ function updateSelection() {
 }
 
 function passesFilter(pbl, filter) {
+    let u = pbl[0].toLowerCase()
+    let d = pbl[1].toLowerCase()
+    filter = filter.toLowerCase()
     if (filter.includes("/")) {
         [a, b] = filter.split("/").slice(0, 2);
+        console.log(a, b, filter)
         if (a && b) {
             return (
-                (pbl[0].includes(a) && pbl[1].includes(b)) ||
-                (pbl[1].includes(a) && pbl[0].includes(b))
+                (u.startsWith(a) && d.startsWith(b)) ||
+                (u.startsWith(b) && d.startsWith(a))
             ); // t/b or b/t
         }
         filter = filter.replace("/", "");
     }
-    return pbl[0].includes(filter) || pbl[1].includes(filter);
+    return u.startsWith(filter) || d.startsWith(filter);
 }
 
 function generateScramble() {
@@ -1029,7 +1033,7 @@ filterInputEl.addEventListener("input", () => {
     filterInputEl.value = filterInputEl.value.replace(/[^a-zA-Z/-]/g, "");
     for ([t, b] of possiblePBL) {
         const name = `${t}/${b}`;
-        if (passesFilter([t, b], filterInputEl.value.toUpperCase())) {
+        if (passesFilter([t, b], filterInputEl.value)) {
             showPbl(name);
         } else {
             hidePbl(name);
