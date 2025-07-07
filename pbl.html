@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>PBL Trainer</title>
+        <link rel="stylesheet" href="pbl.css">
+        <script defer="defer" src="cube.js"></script>
+        
+    </head>
+    <body>
+        <div class="navbar">PBL TRAINER</div>
+
+        <div class="main">
+            <!-- Sidebar gauche -->
+            <div class="sidebar">
+                <div class="filter-title">Filter cases</div>
+
+                <input
+                    type="text"
+                    class="filter-input"
+                    id="filter"
+                    maxlength="10"
+                    placeholder="Enter pbl"
+                />
+                <div class="button-grid">
+                    <button class="filter-btn" id="sela">
+                        Select <b>ALL</b>
+                    </button>
+                    <button class="filter-btn" id="desela">
+                        Deselect <b>ALL</b>
+                    </button>
+                    <button class="filter-btn" id="selt">Select these</button>
+                    <button class="filter-btn" id="deselt">
+                        Deselect these
+                    </button>
+                </div>
+                <div class="grid" id="results">
+                    <!-- Cases -->
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="top-bar">
+                    <button class="bar-btn" id="prev"><- Previous</button>
+                    <div class="bar-title" id="cur-scram">
+                        Scramble will show up here
+                    </div>
+                    <button class="bar-btn" id="next">Next -></button>
+                </div>
+
+                <div class="timer-display" id="timer">--:--</div>
+
+                <div class="bottom-bar">
+                    <div class="bar-title" id="prev-scram">
+                        Last scramble will show up here
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
