@@ -976,7 +976,7 @@ function generateScramble() {
     ).replaceAll("/", " / ");
     if (scrambleList.length != 0)
         previousScrambleEl.textContent = "Previous scramble : " + scrambleList[scrambleList.length - 1];
-    else
+    if(!hasActiveScramble)
         timerEl.textContent = "0.00"
     currentScrambleEl.textContent = final;
     scrambleList.push(final);
