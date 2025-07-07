@@ -1029,7 +1029,7 @@ filterInputEl.addEventListener("input", () => {
     filterInputEl.value = filterInputEl.value.replace(/[^a-zA-Z/-]/g, "");
     for ([t, b] of possiblePBL) {
         const name = `${t}/${b}`;
-        if (passesFilter([t, b], filterInputEl.value)) {
+        if (passesFilter([t, b], filterInputEl.value.toUpperCase())) {
             showPbl(name);
         } else {
             hidePbl(name);
