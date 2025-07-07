@@ -1,5 +1,6 @@
 # Square1Trainer
-Since derpycuber.com is down, I made a trainer for PBL
+Since derpycuber.com is down, I made a trainer for PBL.
+
 If you find a bug or have a suggestion, contact me on discord (Le kit a nikit / @bqro)
 
 Features planned: 
