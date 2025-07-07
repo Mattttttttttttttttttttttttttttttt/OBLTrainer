@@ -1092,6 +1092,8 @@ window.addEventListener("keydown", (e) => {
         // Stop timer
         stopTimer();
         generateScramble();
+        if(e.code == "Space") 
+            e.preventDefault()
     } else if (e.code === "Space") {
         if (!pressStartTime) {
             pressStartTime = performance.now();
