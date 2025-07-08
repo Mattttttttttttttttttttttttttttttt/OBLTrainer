@@ -972,20 +972,28 @@ function updateSelection() {
         generateScramble()
 }
 
+function isPll(pll, filter) {
+    special = ["opp", "adj", "pn", "pj"]
+    if(special.includes(pll)) {
+        return filter == pll
+    }
+    return pll.startsWith(filter)
+}
+
 function passesFilter(pbl, filter) {
     let u = pbl[0].toLowerCase()
     let d = pbl[1].toLowerCase()
-    filter = filter.toLowerCase()
-    if (filter.includes("/")) {
-        [a, b] = filter.split("/").slice(0, 2);
+    filter = filter.replace("/", " ").toLowerCase()
+    console.log(filter)
+    if (filter.includes(" ")) {
+        [a, b] = filter.match(/[^ ]+/g).slice(0, 2);
+        console.log("'"+a+"' and '"+b+"'")
         if (a && b) {
-            return (
-                (u.startsWith(a) && d.startsWith(b)) ||
-                (u.startsWith(b) && d.startsWith(a))
-            ); // t/b or b/t
+            return (isPll(u, a) && isPll(d, b)) || (isPll(u, b) && isPll(d, a))
         }
+        filter = a //  if we type 'Pl/' take 'Pl' as the filter
     }
-    return u.startsWith(filter) || d.startsWith(filter);
+    return isPll(u, filter) || isPll(d, filter);
 }
 
 function generateScramble() {
@@ -1122,7 +1130,7 @@ filterInputEl.addEventListener("input", () => {
     filterInputEl.value = filterInputEl.value.replace("/[^a-zA-Z\/]+/g", "");
     for (pbl of possiblePBL) {
         const n = name(pbl);
-        if (passesFilter(pbl, filterInputEl.value.replace(" ", "/"))) {
+        if (passesFilter(pbl, filterInputEl.value)) {
             showPbl(n);
         } else {
             hidePbl(n);
