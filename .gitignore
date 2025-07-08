@@ -1,2 +1,4 @@
 unused/
 .vscode/
+*.dat
+old.json

@@ -4,9 +4,8 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>PBL Trainer</title>
-        <link rel="stylesheet" href="index.css">
+        <link rel="stylesheet" href="index.css" />
         <script defer="defer" src="cube.js"></script>
-        
     </head>
     <body>
         <div class="navbar">PBL TRAINER</div>
@@ -15,7 +14,6 @@
             <!-- Sidebar gauche -->
             <div class="sidebar">
                 <div class="filter-title">Filter cases</div>
-
                 <input
                     type="text"
                     class="filter-input"
@@ -30,9 +28,31 @@
                     <button class="selection-btn" id="desela">
                         Deselect <b>ALL</b>
                     </button>
-                    <button class="selection-btn" id="selt">Select these</button>
+                    <button class="selection-btn" id="selt">
+                        Select these
+                    </button>
                     <button class="selection-btn" id="deselt">
                         Deselect these
+                    </button>
+                    <button class="selection-btn" id="showselected">
+                        Show selected
+                    </button>
+                    <button class="selection-btn" id="newlist">New list</button>
+                    <div class="select-wrapper">
+                        <select class="lists selection-btn" id="lists">
+                            <option value="all">No list</option>
+                            <optgroup
+                                label="--Default lists--"
+                                id="defaultlists"
+                            ></optgroup>
+                            <optgroup
+                                label="--Your lists--"
+                                id="userlists"
+                            ></optgroup>
+                        </select>
+                    </div>
+                    <button class="selection-btn" id="dellist">
+                        Delete list
                     </button>
                 </div>
                 <div class="grid" id="results">

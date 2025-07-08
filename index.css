@@ -157,6 +157,33 @@ button:hover {
     border-color: #4c6dff;
 }
 
+.select-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 1fr;
+}
+
+.select-wrapper select {
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 0.5rem 2rem 0.5rem 0.5rem; /* espace pour la flèche à droite */
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+.select-wrapper select:hover {
+    background-color: #3a3a3a;
+    border-color: #4c6dff;
+}
+
+
 .top-bar {
     display: flex;
     justify-content: space-between;

@@ -821,6 +821,10 @@ const oddPLL = Object.keys(TPLL).slice(22);
 let possiblePBL = [];
 let selectedPBL = [];
 let scrambleList = [];
+
+let defaultLists = {}
+let userLists = {}
+
 let scrambleOffset = 0;
 let generators;
 let hasActiveScramble = false;
@@ -831,8 +835,8 @@ let timerStart = null;
 let intervalId = null;
 let isRunning = false;
 let readyToStart = false;
+const startDelay = 0;
 
-const startDelay = 50;
 
 // HTML
 const pblListEl = document.getElementById("results");
@@ -841,28 +845,48 @@ const selectAllEl = document.getElementById("sela");
 const deselectAllEl = document.getElementById("desela");
 const selectTheseEl = document.getElementById("selt");
 const deselectTheseEl = document.getElementById("deselt");
+const showSelectionEl = document.getElementById("showselected")
+const listEl = document.getElementById("lists")
+const userListsEl = document.getElementById("userlists")
+const defaultListsEl = document.getElementById("defaultlists")
+const newListEl = document.getElementById("newlist")
+const deleteListEl = document.getElementById("dellist")
+
 const currentScrambleEl = document.getElementById("cur-scram");
 const previousScrambleEl = document.getElementById("prev-scram");
 const prevScrambleButton = document.getElementById("prev");
 const nextScrambleButton = document.getElementById("next");
 const timerEl = document.getElementById("timer");
 
+function name(pbl) {
+    return `${pbl[0]}/${pbl[1]}`
+}
+
 function getLocalStorageData() {
+    // selectedPBL
     const storageSelectedPBL = localStorage.getItem("selectedPBL")
     if(storageSelectedPBL!==null) {
         selectedPBL = JSON.parse(storageSelectedPBL)
-        console.log(selectedPBL)
         for(k of selectedPBL) {
             document.getElementById(k).classList.add("checked")
         }
         generateScramble()
-    } else {
-        console.log("Nothing...")
+    }
+
+    // userLists
+    const storageUserLists = localStorage.getItem("userLists")
+    if(storageUserLists!==null) {
+        userLists = JSON.parse(storageUserLists)
+        addUserLists()
     }
 }
 
-function saveToLocalStorage() {
+function saveSelectedPBL() {
     localStorage.setItem("selectedPBL", JSON.stringify(selectedPBL))
+}
+
+function saveUserLists() {
+    localStorage.setItem("userLists", JSON.stringify(userLists))
 }
 
 function init() {
@@ -915,20 +939,35 @@ function init() {
                 selectedPBL.splice(selectedPBL.indexOf(pbl), 1);
                 if (selectedPBL.length == 0) generateScramble();
             }
-            saveToLocalStorage()
+            saveSelectedPBL()
         });
     });
+
+    // Load default lists
+    fetch("./defaultlists.json")
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then((data) => {
+            defaultLists = data
+            addDefaultLists()
+        })
+        .catch((error) => console.error("Failed to fetch data:", error));
+
 }
 
 function updateSelection() {
     selectedPBL = []
-    for([t, b] of possiblePBL) {
-        const e = document.getElementById(`${t}/${b}`)
+    for(pbl of possiblePBL) {
+        const e = document.getElementById(name(pbl))
         if(e.classList.contains("checked")) {
             selectedPBL.push(e.id)
         }
     }
-    saveToLocalStorage()
+    saveSelectedPBL()
     if(!hasActiveScramble || selectedPBL.length == 0)
         generateScramble()
 }
@@ -939,14 +978,12 @@ function passesFilter(pbl, filter) {
     filter = filter.toLowerCase()
     if (filter.includes("/")) {
         [a, b] = filter.split("/").slice(0, 2);
-        console.log(a, b, filter)
         if (a && b) {
             return (
                 (u.startsWith(a) && d.startsWith(b)) ||
                 (u.startsWith(b) && d.startsWith(a))
             ); // t/b or b/t
         }
-        filter = filter.replace("/", "");
     }
     return u.startsWith(filter) || d.startsWith(filter);
 }
@@ -962,6 +999,7 @@ function generateScramble() {
     }
     pblChoice = selectedPBL[randInt(0, selectedPBL.length - 1)] + "-+"[randInt(0, 1)];
     scramble = generators[pblChoice];
+    console.log("Initial scramble:",scramble)
     let s = scramble[0];
     let e = scramble[scramble.length - 1];
     let start;
@@ -982,6 +1020,7 @@ function generateScramble() {
         scramble.slice(1, scramble.length - 1) +
         end
     ).replaceAll("/", " / ");
+    console.log("Final scramble:",final)
     if (scrambleList.length != 0)
         previousScrambleEl.textContent = "Previous scramble : " + scrambleList[scrambleList.length - 1];
     if(!hasActiveScramble) {
@@ -1027,16 +1066,66 @@ function stopTimer() {
     isRunning = false;
 }
 
+function addUserLists() {
+    let content = ""
+    for(k of Object.keys(userLists)) {
+        content += `
+        <option value="${k}" id="${k}">${k}</option>`
+    }
+    userListsEl.innerHTML = content
+    saveUserLists()
+}
+
+function addDefaultLists() {
+    let content = ""
+    for(k of Object.keys(defaultLists)) {
+        content += `
+        <option value="${k}" id="${k}">${k}</option>`
+    }
+    defaultListsEl.innerHTML = content
+    saveUserLists()
+}
+
+function onSelectList() {
+    let list;
+    let n = listEl.value
+    if(Object.keys(defaultLists).includes(n)) {
+        list = defaultLists[n]
+    } else {
+        list = userLists[n];
+    }
+    for(let k of Object.keys(list)) {
+        //let elem = document.getElementById(k)
+        if(list[k]) {
+            showPbl(k)
+        //    k.classList.add("checked")
+        } else {
+            hidePbl(k)
+        //    k.classList.remove("checked")
+        }
+    }
+    saveUserLists()
+}
+
+function validName(n) {
+    for(l of n) {
+        if(l.toLowerCase() == l.toUpperCase() && isNaN(parseInt(l)) && l!=" ") {
+            return false
+        }
+    }
+    return true
+}
+
 init();
 
 filterInputEl.addEventListener("input", () => {
-    filterInputEl.value = filterInputEl.value.replace(/[^a-zA-Z/-]/g, "");
-    for ([t, b] of possiblePBL) {
-        const name = `${t}/${b}`;
-        if (passesFilter([t, b], filterInputEl.value)) {
-            showPbl(name);
+    filterInputEl.value = filterInputEl.value.replace("/[^a-zA-Z\/]+/g", "");
+    for (pbl of possiblePBL) {
+        const n = name(pbl);
+        if (passesFilter(pbl, filterInputEl.value.replace(" ", "/"))) {
+            showPbl(n);
         } else {
-            hidePbl(name);
+            hidePbl(n);
         }
     }
 });
@@ -1090,8 +1179,84 @@ nextScrambleButton.addEventListener("click", () => {
     }
 });
 
+showSelectionEl.addEventListener("click", () => {
+    for(pbl of possiblePBL) {
+        const n = name(pbl);
+        if(selectedPBL.includes(n)) {
+            showPbl(n)
+        } else {
+            hidePbl(n)
+        }
+    }
+})
+
+newListEl.addEventListener("click", () => {
+    if(selectedPBL.length == 0) {
+        alert("Please select PBLs to create a list!")
+        listEl.value = "all"
+        return
+    }
+    let newListName = prompt("Name of your list:").trim()
+    if(newListName == "" || !validName(newListName)) {
+        alert("Please enter a valid name (only letters, numbers and spaces)")
+        listEl.value = "all"
+        return
+    }
+    if(Object.keys(defaultLists).includes(newListName)) {
+        alert("A default list already has this name!")
+        listEl.value = "all"
+        return
+    } else if(Object.keys(userLists).includes(newListName)) {
+        alert("You already gave this name to a list")
+        listEl.value = "all"
+        return
+    }
+    let newList = {}
+    for(pbl of possiblePBL) {
+        const n = name(pbl)
+        if(selectedPBL.includes(n)) {
+            newList[n] = 1
+        } else {
+            newList[n] = 0
+        }
+        userLists[newListName] = newList
+        addUserLists()
+        listEl.value = newListName
+    }
+})
+
+deleteListEl.addEventListener("click", () => {
+    let n = listEl.value
+    if(n == "all") {
+        alert("No list selected")
+        return
+    }
+    if(Object.keys(defaultLists).includes(n)) {
+        alert("You can't delete a default list")
+        return
+    }
+
+    if(confirm("You are about to delete list " + n))
+        delete userLists[n]
+    addUserLists()
+})
+
+listEl.addEventListener("change", () => {
+    let n = listEl.value
+    // Special case
+    // No list
+    if(n == "all") {
+        for(pbl of possiblePBL) {
+            showPbl(name(pbl))
+        }
+        return
+    }
+    onSelectList()
+}) 
+
 window.addEventListener("keydown", (e) => {
     if (!hasActiveScramble) return;
+    if (document.activeElement == filterInputEl) return;
     if (isRunning) {
         // Stop timer
         stopTimer();
@@ -1114,6 +1279,7 @@ window.addEventListener("keydown", (e) => {
 
 window.addEventListener("keyup", (e) => {
     if (!hasActiveScramble) return;
+    if (document.activeElement == filterInputEl) return;
     if (e.code === "Space") {
         const heldTime = performance.now() - pressStartTime;
         clearTimeout(holdTimeout);

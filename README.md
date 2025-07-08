@@ -8,5 +8,5 @@ Access at : https://darkschaos.github.io/Square1Trainer/
 Features planned: 
 - Mobile
 - Draw scramble when clicked
-- Create and save lists
-- Make scrambles more varied/obfuscated
+- Create and save lists (Added!)
+- Make scrambles more varied and less obvious
