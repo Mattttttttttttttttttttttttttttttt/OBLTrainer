@@ -56,7 +56,7 @@ const LAYER_RAD = rad(LAYER_DEG);
 const EDGE_RAD = rad(EDGE_DEG);
 const CORNER_RAD = rad(CORNER_DEG);
 
-const PADDING = 0.25;
+const PADDING = 0.3;
 
 class Move {
     static Slice = 0b11111111;
@@ -598,9 +598,15 @@ class Cube {
     }
 
     draw(center, scale = 100, blanks = false) {
-        const topCenter = new Point(center.x, center.y - scale * 2);
-        const botCenter = new Point(center.x, center.y + scale * 2);
-
+        const topCenter = new Point(
+            center.x - scale * 1.5,
+            center.y - scale / 2
+        );
+        const botCenter = new Point(
+            center.x + scale * 1.5,
+            center.y - scale / 2
+        );
+        const barCenter = new Point(center.x, center.y + scale);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         // top layer
         for (let i = 0; i < 12; i++) {
@@ -621,19 +627,18 @@ class Cube {
             const props = pieceProperties[piece];
             if (props[2]) {
                 // corner
-                drawCorner(botCenter, i, props[1], props[0], false);
+                drawCorner(botCenter, i, props[1], props[0], false, scale);
             } else {
-                drawEdge(botCenter, i, props[1], props[0], false);
+                drawEdge(botCenter, i, props[1], props[0], false, scale);
             }
         }
         // equator
-        drawEquator(center, this.barflip, scale);
+        drawEquator(barCenter, this.barflip, scale);
         // slice lines
-        drawSlice(topCenter, scale);
-        drawSlice(botCenter, scale);
+        // drawSlice(topCenter, scale);
+        // drawSlice(botCenter, scale);
 
         // temp
-        drawCursor(topCenter, 2, scale);
     }
 
     topLayerString() {
@@ -670,6 +675,7 @@ class Cube {
     pblCase(full = true) {
         return (
             findPLL(this.topLayerString(), true, full) +
+            "/" +
             findPLL(this.botLayerString(), false, full) +
             (this.barflip ? "+" : "-").toString()
         );
@@ -822,12 +828,16 @@ let possiblePBL = [];
 let selectedPBL = [];
 let scrambleList = [];
 
-let defaultLists = {}
-let userLists = {}
+let defaultLists = {};
+let userLists = {};
 
 let scrambleOffset = 0;
 let generators;
 let hasActiveScramble = false;
+let hasPreviousScramble = false;
+let isScramblePopupActive = false;
+
+let cubeCenter, cubeScale;
 
 let pressStartTime = null;
 let holdTimeout = null;
@@ -835,8 +845,8 @@ let timerStart = null;
 let intervalId = null;
 let isRunning = false;
 let readyToStart = false;
+let otherKeyPressed = false;
 const startDelay = 0;
-
 
 // HTML
 const pblListEl = document.getElementById("results");
@@ -845,12 +855,21 @@ const selectAllEl = document.getElementById("sela");
 const deselectAllEl = document.getElementById("desela");
 const selectTheseEl = document.getElementById("selt");
 const deselectTheseEl = document.getElementById("deselt");
-const showSelectionEl = document.getElementById("showselected")
-const listEl = document.getElementById("lists")
-const userListsEl = document.getElementById("userlists")
-const defaultListsEl = document.getElementById("defaultlists")
-const newListEl = document.getElementById("newlist")
-const deleteListEl = document.getElementById("dellist")
+const showSelectionEl = document.getElementById("showselected");
+const listEl = document.getElementById("lists");
+const userListsEl = document.getElementById("userlists");
+const defaultListsEl = document.getElementById("defaultlists");
+const newListEl = document.getElementById("newlist");
+const deleteListEl = document.getElementById("dellist");
+const scramblePopupEl = document.getElementById("scram-popup");
+const closeScramblePopupEl = document.getElementById("scramcross");
+const displayScramEl = document.getElementById("display-scram");
+const canvasWrapperEl = document.getElementById("canvas-wrapper");
+const displayPBLname = document.getElementById("pblname");
+
+// initialize canvas declared at the very top of the file
+canvas = document.getElementById("scram-canvas");
+ctx = canvas.getContext("2d");
 
 const currentScrambleEl = document.getElementById("cur-scram");
 const previousScrambleEl = document.getElementById("prev-scram");
@@ -859,34 +878,34 @@ const nextScrambleButton = document.getElementById("next");
 const timerEl = document.getElementById("timer");
 
 function name(pbl) {
-    return `${pbl[0]}/${pbl[1]}`
+    return `${pbl[0]}/${pbl[1]}`;
 }
 
 function getLocalStorageData() {
     // selectedPBL
-    const storageSelectedPBL = localStorage.getItem("selectedPBL")
-    if(storageSelectedPBL!==null) {
-        selectedPBL = JSON.parse(storageSelectedPBL)
-        for(k of selectedPBL) {
-            document.getElementById(k).classList.add("checked")
+    const storageSelectedPBL = localStorage.getItem("selectedPBL");
+    if (storageSelectedPBL !== null) {
+        selectedPBL = JSON.parse(storageSelectedPBL);
+        for (k of selectedPBL) {
+            document.getElementById(k).classList.add("checked");
         }
-        generateScramble()
+        generateScramble();
     }
 
     // userLists
-    const storageUserLists = localStorage.getItem("userLists")
-    if(storageUserLists!==null) {
-        userLists = JSON.parse(storageUserLists)
-        addUserLists()
+    const storageUserLists = localStorage.getItem("userLists");
+    if (storageUserLists !== null) {
+        userLists = JSON.parse(storageUserLists);
+        addUserLists();
     }
 }
 
 function saveSelectedPBL() {
-    localStorage.setItem("selectedPBL", JSON.stringify(selectedPBL))
+    localStorage.setItem("selectedPBL", JSON.stringify(selectedPBL));
 }
 
 function saveUserLists() {
-    localStorage.setItem("userLists", JSON.stringify(userLists))
+    localStorage.setItem("userLists", JSON.stringify(userLists));
 }
 
 function init() {
@@ -913,7 +932,7 @@ function init() {
             generators = data;
             // Load local storage data only after generators
             // have been loaded, so we can generate a scramble
-            getLocalStorageData()
+            getLocalStorageData();
         })
         .catch((error) => console.error("Failed to fetch data:", error));
 
@@ -939,7 +958,7 @@ function init() {
                 selectedPBL.splice(selectedPBL.indexOf(pbl), 1);
                 if (selectedPBL.length == 0) generateScramble();
             }
-            saveSelectedPBL()
+            saveSelectedPBL();
         });
     });
 
@@ -952,46 +971,42 @@ function init() {
             return response.json();
         })
         .then((data) => {
-            defaultLists = data
-            addDefaultLists()
+            defaultLists = data;
+            addDefaultLists();
         })
         .catch((error) => console.error("Failed to fetch data:", error));
-
 }
 
 function updateSelection() {
-    selectedPBL = []
-    for(pbl of possiblePBL) {
-        const e = document.getElementById(name(pbl))
-        if(e.classList.contains("checked")) {
-            selectedPBL.push(e.id)
+    selectedPBL = [];
+    for (pbl of possiblePBL) {
+        const e = document.getElementById(name(pbl));
+        if (e.classList.contains("checked")) {
+            selectedPBL.push(e.id);
         }
     }
-    saveSelectedPBL()
-    if(!hasActiveScramble || selectedPBL.length == 0)
-        generateScramble()
+    saveSelectedPBL();
+    if (!hasActiveScramble || selectedPBL.length == 0) generateScramble();
 }
 
 function isPll(pll, filter) {
-    special = ["opp", "adj", "pn", "pj"]
-    if(special.includes(pll)) {
-        return filter == pll
+    special = ["opp", "adj", "pn", "pj"];
+    if (special.includes(pll)) {
+        return filter == pll;
     }
-    return pll.startsWith(filter)
+    return pll.startsWith(filter);
 }
 
 function passesFilter(pbl, filter) {
-    let u = pbl[0].toLowerCase()
-    let d = pbl[1].toLowerCase()
-    filter = filter.replace("/", " ").toLowerCase()
-    console.log(filter)
+    let u = pbl[0].toLowerCase();
+    let d = pbl[1].toLowerCase();
+    filter = filter.replace("/", " ").toLowerCase();
     if (filter.includes(" ")) {
         [a, b] = filter.match(/[^ ]+/g).slice(0, 2);
-        console.log("'"+a+"' and '"+b+"'")
         if (a && b) {
-            return (isPll(u, a) && isPll(d, b)) || (isPll(u, b) && isPll(d, a))
+            return (isPll(u, a) && isPll(d, b)) || (isPll(u, b) && isPll(d, a));
         }
-        filter = a //  if we type 'Pl/' take 'Pl' as the filter
+        filter = a; //  if we type 'Pl/' take 'Pl' as the filter
     }
     return isPll(u, filter) || isPll(d, filter);
 }
@@ -1001,13 +1016,14 @@ function generateScramble() {
     if (selectedPBL.length == 0) {
         timerEl.textContent = "--:--";
         currentScrambleEl.textContent = "Scramble will show up here";
-        scrambleList = []
+        scrambleList = [];
         hasActiveScramble = false;
         return;
     }
-    pblChoice = selectedPBL[randInt(0, selectedPBL.length - 1)] + "-+"[randInt(0, 1)];
+    pblChoice =
+        selectedPBL[randInt(0, selectedPBL.length - 1)] + "-+"[randInt(0, 1)];
     scramble = generators[pblChoice];
-    console.log("Initial scramble:",scramble)
+    // Add random begin and end layer moves
     let s = scramble[0];
     let e = scramble[scramble.length - 1];
     let start;
@@ -1028,11 +1044,13 @@ function generateScramble() {
         scramble.slice(1, scramble.length - 1) +
         end
     ).replaceAll("/", " / ");
-    console.log("Final scramble:",final)
-    if (scrambleList.length != 0)
-        previousScrambleEl.textContent = "Previous scramble : " + scrambleList[scrambleList.length - 1];
-    if(!hasActiveScramble) {
-        timerEl.textContent = "0.00"
+    if (scrambleList.length != 0) {
+        previousScrambleEl.textContent =
+            "Previous scramble : " + scrambleList[scrambleList.length - 1];
+        hasPreviousScramble = true;
+    }
+    if (!hasActiveScramble) {
+        timerEl.textContent = "0.00";
     }
     currentScrambleEl.textContent = final;
     scrambleList.push(final);
@@ -1075,59 +1093,90 @@ function stopTimer() {
 }
 
 function addUserLists() {
-    let content = ""
-    for(k of Object.keys(userLists)) {
+    let content = "";
+    for (k of Object.keys(userLists)) {
         content += `
-        <option value="${k}" id="${k}">${k}</option>`
+        <option value="${k}" id="${k}">${k}</option>`;
     }
-    userListsEl.innerHTML = content
-    saveUserLists()
+    userListsEl.innerHTML = content;
+    saveUserLists();
 }
 
 function addDefaultLists() {
-    let content = ""
-    for(k of Object.keys(defaultLists)) {
+    let content = "";
+    for (k of Object.keys(defaultLists)) {
         content += `
-        <option value="${k}" id="${k}">${k}</option>`
+        <option value="${k}" id="${k}">${k}</option>`;
     }
-    defaultListsEl.innerHTML = content
-    saveUserLists()
+    defaultListsEl.innerHTML = content;
+    saveUserLists();
 }
 
 function onSelectList() {
     let list;
-    let n = listEl.value
-    if(Object.keys(defaultLists).includes(n)) {
-        list = defaultLists[n]
+    let n = listEl.value;
+    if (Object.keys(defaultLists).includes(n)) {
+        list = defaultLists[n];
     } else {
         list = userLists[n];
     }
-    for(let k of Object.keys(list)) {
+    for (let k of Object.keys(list)) {
         //let elem = document.getElementById(k)
-        if(list[k]) {
-            showPbl(k)
-        //    k.classList.add("checked")
+        if (list[k]) {
+            showPbl(k);
+            //    k.classList.add("checked")
         } else {
-            hidePbl(k)
-        //    k.classList.remove("checked")
+            hidePbl(k);
+            //    k.classList.remove("checked")
         }
     }
-    saveUserLists()
+    saveUserLists();
 }
 
 function validName(n) {
-    for(l of n) {
-        if(l.toLowerCase() == l.toUpperCase() && isNaN(parseInt(l)) && l!=" ") {
-            return false
+    for (l of n) {
+        if (
+            l.toLowerCase() == l.toUpperCase() &&
+            isNaN(parseInt(l)) &&
+            l != " "
+        ) {
+            return false;
         }
     }
-    return true
+    return true;
+}
+
+function openScramblePopup(scramble) {
+    isScramblePopupActive = true;
+    scramblePopupEl.classList.add("open");
+
+    // Change canvas size
+    const w = canvasWrapperEl.offsetWidth;
+    const h = canvasWrapperEl.offsetHeight;
+
+    canvas.width = w;
+    canvas.height = h;
+    cubeCenter = new Point(parseInt(w / 2), parseInt(h / 2));
+    cubeScale = parseInt(w / 8);
+
+    let displayCube = new Cube(solved);
+    displayCube.applySequence(new Sequence(scramble));
+    displayCube.draw(cubeCenter, cubeScale);
+
+    displayScramEl.textContent = scramble;
+    displayPBLname.textContent = displayCube.pblCase();
+}
+
+function closeScramblePopup() {
+    isScramblePopupActive = false;
+    scramblePopupEl.classList.remove("open");
 }
 
 init();
 
 filterInputEl.addEventListener("input", () => {
-    filterInputEl.value = filterInputEl.value.replace("/[^a-zA-Z\/]+/g", "");
+    filterInputEl.value = filterInputEl.value.replace(/[^a-zA-Z/ ]+/g, "");
+    listEl.value = "all"
     for (pbl of possiblePBL) {
         const n = name(pbl);
         if (passesFilter(pbl, filterInputEl.value)) {
@@ -1142,136 +1191,143 @@ selectAllEl.addEventListener("click", () => {
     for (i of pblListEl.children) {
         i.classList.add("checked");
     }
-    updateSelection()
+    updateSelection();
 });
 
 deselectAllEl.addEventListener("click", () => {
     for (i of pblListEl.children) {
         i.classList.remove("checked");
     }
-    updateSelection()
+    updateSelection();
 });
 
 selectTheseEl.addEventListener("click", () => {
-    selectedPBL = []
+    selectedPBL = [];
     for (i of pblListEl.children) {
         if (!i.classList.contains("hidden")) {
             i.classList.add("checked");
-            selectedPBL.push(i.id)
+            selectedPBL.push(i.id);
         }
     }
-    updateSelection()
+    updateSelection();
 });
 
 deselectTheseEl.addEventListener("click", () => {
     for (i of pblListEl.children) {
         if (!i.classList.contains("hidden")) i.classList.remove("checked");
     }
-    updateSelection()
+    updateSelection();
 });
 
 prevScrambleButton.addEventListener("click", () => {
-    if(scrambleList.length == 0) return
-    scrambleOffset = Math.min(scrambleOffset + 1, scrambleList.length - 1)
-    currentScrambleEl.textContent =scrambleList[scrambleList.length - 1 - scrambleOffset];
+    if (scrambleList.length == 0) return;
+    scrambleOffset = Math.min(scrambleOffset + 1, scrambleList.length - 1);
+    currentScrambleEl.textContent =
+        scrambleList[scrambleList.length - 1 - scrambleOffset];
 });
 
 nextScrambleButton.addEventListener("click", () => {
-    if(scrambleList.length == 0) return
+    if (scrambleList.length == 0) return;
     scrambleOffset--;
     if (scrambleOffset < 0) {
-        scrambleOffset = 0
+        scrambleOffset = 0;
         generateScramble();
     } else {
-        currentScrambleEl.textContent = scrambleList[scrambleList.length - 1 - scrambleOffset];
+        currentScrambleEl.textContent =
+            scrambleList[scrambleList.length - 1 - scrambleOffset];
     }
 });
 
 showSelectionEl.addEventListener("click", () => {
-    for(pbl of possiblePBL) {
+    for (pbl of possiblePBL) {
         const n = name(pbl);
-        if(selectedPBL.includes(n)) {
-            showPbl(n)
+        if (selectedPBL.includes(n)) {
+            showPbl(n);
         } else {
-            hidePbl(n)
+            hidePbl(n);
         }
     }
-})
+});
 
 newListEl.addEventListener("click", () => {
-    if(selectedPBL.length == 0) {
-        alert("Please select PBLs to create a list!")
-        listEl.value = "all"
-        return
+    if (selectedPBL.length == 0) {
+        alert("Please select PBLs to create a list!");
+        listEl.value = "all";
+        return;
     }
-    let newListName = prompt("Name of your list:").trim()
-    if(newListName == "" || !validName(newListName)) {
-        alert("Please enter a valid name (only letters, numbers and spaces)")
-        listEl.value = "all"
-        return
+    let newListName = prompt("Name of your list:").trim();
+    if (newListName == "" || !validName(newListName)) {
+        alert("Please enter a valid name (only letters, numbers and spaces)");
+        listEl.value = "all";
+        return;
     }
-    if(Object.keys(defaultLists).includes(newListName)) {
-        alert("A default list already has this name!")
-        listEl.value = "all"
-        return
-    } else if(Object.keys(userLists).includes(newListName)) {
-        alert("You already gave this name to a list")
-        listEl.value = "all"
-        return
+    if (Object.keys(defaultLists).includes(newListName)) {
+        alert("A default list already has this name!");
+        listEl.value = "all";
+        return;
+    } else if (Object.keys(userLists).includes(newListName)) {
+        alert("You already gave this name to a list");
+        listEl.value = "all";
+        return;
     }
-    let newList = {}
-    for(pbl of possiblePBL) {
-        const n = name(pbl)
-        if(selectedPBL.includes(n)) {
-            newList[n] = 1
+    let newList = {};
+    for (pbl of possiblePBL) {
+        const n = name(pbl);
+        if (selectedPBL.includes(n)) {
+            newList[n] = 1;
         } else {
-            newList[n] = 0
+            newList[n] = 0;
         }
-        userLists[newListName] = newList
-        addUserLists()
-        listEl.value = newListName
+        userLists[newListName] = newList;
+        addUserLists();
+        listEl.value = newListName;
     }
-})
+});
 
 deleteListEl.addEventListener("click", () => {
-    let n = listEl.value
-    if(n == "all") {
-        alert("No list selected")
-        return
+    let n = listEl.value;
+    if (n == "all") {
+        alert("No list selected");
+        return;
     }
-    if(Object.keys(defaultLists).includes(n)) {
-        alert("You can't delete a default list")
-        return
+    if (Object.keys(userLists).includes(n)) {
+        if (confirm("You are about to delete list " + n)) delete userLists[n];
+        addUserLists();
+        return;
     }
-
-    if(confirm("You are about to delete list " + n))
-        delete userLists[n]
-    addUserLists()
-})
+    if (Object.keys(defaultLists).includes(n)) {
+        alert("You can't delete a default list");
+        return;
+    }
+    alert("Error");
+});
 
 listEl.addEventListener("change", () => {
-    let n = listEl.value
+    let n = listEl.value;
     // Special case
     // No list
-    if(n == "all") {
-        for(pbl of possiblePBL) {
-            showPbl(name(pbl))
+    if (n == "all") {
+        for (pbl of possiblePBL) {
+            showPbl(name(pbl));
         }
-        return
+        return;
     }
-    onSelectList()
-}) 
+    onSelectList();
+});
 
 window.addEventListener("keydown", (e) => {
+    if (isScramblePopupActive && e.code == "Escape") {
+        closeScramblePopup();
+    }
     if (!hasActiveScramble) return;
     if (document.activeElement == filterInputEl) return;
     if (isRunning) {
         // Stop timer
         stopTimer();
         generateScramble();
-        if(e.code == "Space") 
-            e.preventDefault()
-    } else if (e.code === "Space") {
+        if (e.code == "Space") e.preventDefault();
+        else otherKeyPressed = true;
+    } else if (e.code === "Space" && !otherKeyPressed) {
         if (!pressStartTime) {
             pressStartTime = performance.now();
             setColor("red");
@@ -1301,37 +1357,21 @@ window.addEventListener("keyup", (e) => {
         pressStartTime = null;
         readyToStart = false;
         e.preventDefault();
+    } else {
+        otherKeyPressed = false
     }
 });
 
-// let cb = new Cube(solved)
-// let center = new Point(200, 400)
+currentScrambleEl.addEventListener("click", () => {
+    if (isScramblePopupActive || !hasActiveScramble) return;
+    openScramblePopup(currentScrambleEl.innerText);
+});
 
-// let scrambleInput = document.getElementById("scramble")
-// let descriptorInput = document.getElementById("descriptor")
+previousScrambleEl.addEventListener("click", () => {
+    if (isScramblePopupActive || !hasPreviousScramble) return;
+    openScramblePopup(scrambleList[scrambleList.length - 2]);
+});
 
-// scrambleInput.addEventListener("input", function() {
-//     cb.setPosition(solved)
-//     cb.applySequence(new Sequence(scrambleInput.value))
-//     descriptorInput.value = cb.descriptor()
-//     cb.draw(center)
-// })
-
-// descriptorInput.addEventListener("input", function() {
-//     cb.setPosition(descriptorInput.value)
-//     cb.draw(center)
-// })
-
-// const pbl = document.getElementById('pbl');
-
-// pbl.addEventListener('click', function() {
-//     const kt = Object.keys(TPLL)
-//     const kb = Object.keys(BPLL)
-//     const pt = randInt(0, 1)
-//     let topPbl=kt[randInt(0, 21)+pt*22];
-//     let botPbl=kb[randInt(0, 21)+pt*22];
-//     cb.setPBL(topPbl, botPbl, randInt(0, 3), randInt(0, 3), randInt(0, 8), randInt(0, 8), randInt(0, 1))
-//     cb.draw(center)
-// });
-
-// cb.draw(center)
+closeScramblePopupEl.addEventListener("click", () => {
+    closeScramblePopup();
+});
