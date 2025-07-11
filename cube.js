@@ -472,8 +472,8 @@ let BPLL = {
     M: "5F6H7E8G",
     Ol: "8G5H6E7F",
     Or: "6G7H8E5F",
-    Pl: "D4B2C1A3",
-    Pr: "8F6H5E7G",
+    Pl: "6H8F7G5E",
+    Pr: "8H5F7G6E",
     Q: "7H6G5F8E",
     Sa: "8H6G7F5E",
     Sm: "6H5G7F8E",
@@ -895,8 +895,11 @@ function getLocalStorageData() {
     // userLists
     const storageUserLists = localStorage.getItem("userLists");
     if (storageUserLists !== null) {
+        console.log("User lists found (might be an empty array)")
         userLists = JSON.parse(storageUserLists);
         addUserLists();
+    } else {
+        console.log("User lists not set")
     }
 }
 
@@ -935,7 +938,6 @@ function init() {
             getLocalStorageData();
         })
         .catch((error) => console.error("Failed to fetch data:", error));
-
     // Add buttons to the page for each pbl choice
     // Stored to a temp variable so we edit the page only once, and prevent a lag spike
     let buttons = "";
@@ -1002,11 +1004,15 @@ function passesFilter(pbl, filter) {
     let d = pbl[1].toLowerCase();
     filter = filter.replace("/", " ").toLowerCase();
     if (filter.includes(" ")) {
-        [a, b] = filter.match(/[^ ]+/g).slice(0, 2);
-        if (a && b) {
-            return (isPll(u, a) && isPll(d, b)) || (isPll(u, b) && isPll(d, a));
+        arr = filter.match(/[^ ]+/g).slice(0, 2);
+        if(arr != null)
+        {
+            [a, b] = arr.slice(0, 2)
+            if (a && b) {
+                return (isPll(u, a) && isPll(d, b)) || (isPll(u, b) && isPll(d, a));
+            }
+            filter = a; //  if we type 'Pl/' take 'Pl' as the filter
         }
-        filter = a; //  if we type 'Pl/' take 'Pl' as the filter
     }
     return isPll(u, filter) || isPll(d, filter);
 }
@@ -1109,7 +1115,6 @@ function addDefaultLists() {
         <option value="${k}" id="${k}">${k}</option>`;
     }
     defaultListsEl.innerHTML = content;
-    saveUserLists();
 }
 
 function onSelectList() {
@@ -1138,7 +1143,7 @@ function validName(n) {
         if (
             l.toLowerCase() == l.toUpperCase() &&
             isNaN(parseInt(l)) &&
-            l != " "
+            !" /".includes(l)
         ) {
             return false;
         }
@@ -1146,7 +1151,8 @@ function validName(n) {
     return true;
 }
 
-function openScramblePopup(scramble) {
+function openScramblePopup(scramble) {  
+    if(isRunning) return
     isScramblePopupActive = true;
     scramblePopupEl.classList.add("open");
 
@@ -1257,7 +1263,7 @@ newListEl.addEventListener("click", () => {
     }
     let newListName = prompt("Name of your list:").trim();
     if (newListName == "" || !validName(newListName)) {
-        alert("Please enter a valid name (only letters, numbers and spaces)");
+        alert("Please enter a valid name (only letters, numbers, slashes, and spaces)");
         listEl.value = "all";
         return;
     }
@@ -1291,8 +1297,10 @@ deleteListEl.addEventListener("click", () => {
         return;
     }
     if (Object.keys(userLists).includes(n)) {
-        if (confirm("You are about to delete list " + n)) delete userLists[n];
-        addUserLists();
+        if (confirm("You are about to delete list " + n)) {
+            delete userLists[n];
+            addUserLists();
+        } 
         return;
     }
     if (Object.keys(defaultLists).includes(n)) {
@@ -1316,8 +1324,10 @@ listEl.addEventListener("change", () => {
 });
 
 window.addEventListener("keydown", (e) => {
-    if (isScramblePopupActive && e.code == "Escape") {
-        closeScramblePopup();
+    if (isScramblePopupActive) {
+        if(e.code == "Escape")
+            closeScramblePopup();
+        return
     }
     if (!hasActiveScramble) return;
     if (document.activeElement == filterInputEl) return;
@@ -1344,6 +1354,7 @@ window.addEventListener("keydown", (e) => {
 window.addEventListener("keyup", (e) => {
     if (!hasActiveScramble) return;
     if (document.activeElement == filterInputEl) return;
+    if(isScramblePopupActive) return
     if (e.code === "Space") {
         const heldTime = performance.now() - pressStartTime;
         clearTimeout(holdTimeout);
