@@ -845,6 +845,7 @@ let possiblePBL = [];
 let selectedPBL = [];
 let scrambleList = [];
 
+let previousScramble = null;
 let shuffledSelection;
 
 let eachCase = false;
@@ -1122,8 +1123,8 @@ function generateScramble() {
     if (selectedPBL.length == 0) {
         timerEl.textContent = "--:--";
         currentScrambleEl.textContent = "Scramble will show up here";
-        scrambleList = [];
         hasActiveScramble = false;
+        scrambleList = []
         return;
     }
     if (eachCase) {
@@ -1165,8 +1166,9 @@ function generateScramble() {
         end
     ).replaceAll("/", " / ");
     if (scrambleList.length != 0) {
+        previousScramble = scrambleList[scrambleList.length - 1]
         previousScrambleEl.textContent =
-            "Previous scramble : " + scrambleList[scrambleList.length - 1];
+            "Previous scramble : " + previousScramble;
         hasPreviousScramble = true;
     }
     if (!hasActiveScramble) {
@@ -1292,6 +1294,7 @@ function validName(n) {
 
 function openScramblePopup(scramble) {
     if (usingTimer()) return;
+    console.log(scramble)
     isPopupOpen = true;
     scramblePopupEl.classList.add("open");
 
@@ -1608,7 +1611,7 @@ currentScrambleEl.addEventListener("click", () => {
 previousScrambleEl.addEventListener("click", () => {
     if(usingTimer()) return
     if (isPopupOpen || !hasPreviousScramble) return;
-    openScramblePopup(scrambleList[scrambleList.length - 2]);
+    openScramblePopup(previousScramble);
 });
 
 toggleUiEl.addEventListener("click", () => {
