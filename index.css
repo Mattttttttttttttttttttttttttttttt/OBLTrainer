@@ -18,7 +18,7 @@ body {
 }
 
 * {
-    touch-action: none !important;
+    touch-action: pan-up pan-down !important;
 }
 
 /* Navbar sombre */
