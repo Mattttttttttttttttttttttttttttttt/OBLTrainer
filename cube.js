@@ -945,7 +945,7 @@ function getLocalStorageData() {
             document.getElementById(k).classList.add("checked");
         }
         if(eachCase) {
-            shuffledSelection = selectedPBL.copyWithin()
+            shuffledSelection = structuredClone(selectedPBL)
         }
         generateScramble();
         if (selectedPBL.length != 0) {
@@ -1047,9 +1047,11 @@ async function init() {
             pbl = caseEl.id;
             if (caseEl.classList.contains("checked")) {
                 selectedPBL.push(pbl);
+                if(eachCase) shuffledSelection.push(pbl)
                 if (selectedPBL.length == 1) generateScramble();
             } else {
                 selectedPBL.splice(selectedPBL.indexOf(pbl), 1);
+                if(eachCase) shuffledSelection.splice(shuffledSelection.indexOf(pbl), 1)
                 if (selectedPBL.length == 0) generateScramble();
             }
             saveSelectedPBL();
@@ -1367,7 +1369,7 @@ function timerEndTouch(spaceEquivalent) {
 
 function enableGoEachCase() {
     eachCase = true
-    shuffledSelection = selectedPBL.copyWithin()
+    shuffledSelection = structuredClone(selectedPBL)
     caseNum = 0;
 }
 
