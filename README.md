@@ -5,8 +5,5 @@ If you find a bug or have a suggestion, contact me on discord (Le kit a nikit / 
 
 Access at : https://darkschaos.github.io/Square1Trainer/
 
-Features planned: 
-- Mobile
-- Draw scramble when clicked
-- Create and save lists (Added!)
+Features planned:
 - Make scrambles more varied and less obvious
