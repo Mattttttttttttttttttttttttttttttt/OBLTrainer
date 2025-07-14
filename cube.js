@@ -924,6 +924,10 @@ const nextScrambleButton = document.getElementById("next");
 const timerEl = document.getElementById("timer");
 const timerBoxEl = document.getElementById("timerbox");
 
+function usingTimer() {
+    return isRunning || pressStartTime != null
+}
+
 function pblname(pbl) {
     return `${pbl[0]}/${pbl[1]}`;
 }
@@ -1046,12 +1050,10 @@ async function init() {
             caseEl.classList.toggle("checked");
             pbl = caseEl.id;
             if (caseEl.classList.contains("checked")) {
-                selectedPBL.push(pbl);
-                if(eachCase) shuffledSelection.push(pbl)
+                selectPBL(pbl)
                 if (selectedPBL.length == 1) generateScramble();
             } else {
-                selectedPBL.splice(selectedPBL.indexOf(pbl), 1);
-                if(eachCase) shuffledSelection.splice(shuffledSelection.indexOf(pbl), 1)
+                deselectPBL(pbl)
                 if (selectedPBL.length == 0) generateScramble();
             }
             saveSelectedPBL();
@@ -1076,12 +1078,14 @@ async function init() {
 
 function updateSelection() {
     selectedPBL = [];
+    shuffledSelection = [];
     for (pbl of possiblePBL) {
         const e = document.getElementById(pblname(pbl));
         if (e.classList.contains("checked")) {
             selectedPBL.push(e.id);
         }
     }
+    shuffledSelection = structuredClone(selectedPBL)
     saveSelectedPBL();
     if (!hasActiveScramble || selectedPBL.length == 0) generateScramble();
 }
@@ -1287,7 +1291,7 @@ function validName(n) {
 }
 
 function openScramblePopup(scramble) {
-    if (isRunning) return;
+    if (usingTimer()) return;
     isPopupOpen = true;
     scramblePopupEl.classList.add("open");
 
@@ -1309,7 +1313,7 @@ function openScramblePopup(scramble) {
 }
 
 function openListPopup() {
-    if (isRunning) return;
+    if (usingTimer()) return;
     isPopupOpen = true;
     listPopupEl.classList.add("open");
 }
@@ -1346,6 +1350,22 @@ function timerBeginTouch(spaceEquivalent) {
                 readyToStart = true;
             }, startDelay);
         }
+    }
+}
+
+function selectPBL(pbl) {
+    document.getElementById(pbl).classList.add("checked")
+    selectedPBL.push(pbl)
+    if(eachCase) {
+        shuffledSelection.push(pbl)
+    }
+}
+
+function deselectPBL(pbl) {
+    document.getElementById(pbl).classList.remove("checked")
+    selectedPBL.splice(selectedPBL.indexOf(pbl))
+    if(eachCase) {
+        shuffledSelection.splice(shuffledSelection.indexOf(pbl))
     }
 }
 
@@ -1389,6 +1409,7 @@ filterInputEl.addEventListener("input", () => {
 });
 
 selectAllEl.addEventListener("click", () => {
+    if (usingTimer()) return;
     for (i of pblListEl.children) {
         i.classList.add("checked");
     }
@@ -1396,6 +1417,7 @@ selectAllEl.addEventListener("click", () => {
 });
 
 deselectAllEl.addEventListener("click", () => {
+    if (usingTimer()) return;
     for (i of pblListEl.children) {
         i.classList.remove("checked");
     }
@@ -1403,17 +1425,17 @@ deselectAllEl.addEventListener("click", () => {
 });
 
 selectTheseEl.addEventListener("click", () => {
-    selectedPBL = [];
+    if (usingTimer()) return;
     for (i of pblListEl.children) {
         if (!i.classList.contains("hidden")) {
-            i.classList.add("checked");
-            selectedPBL.push(i.id);
+            selectPBL(i.id)
         }
     }
     updateSelection();
 });
 
 deselectTheseEl.addEventListener("click", () => {
+    if (usingTimer()) return;
     for (i of pblListEl.children) {
         if (!i.classList.contains("hidden")) i.classList.remove("checked");
     }
@@ -1421,10 +1443,24 @@ deselectTheseEl.addEventListener("click", () => {
 });
 
 showAllEl.addEventListener("click", () => {
+    if (usingTimer()) return;
     showAll();
 });
 
+showSelectionEl.addEventListener("click", () => {
+    if(usingTimer()) return;
+    for (pbl of possiblePBL) {
+        const n = pblname(pbl);
+        if (selectedPBL.includes(n)) {
+            showPbl(n);
+        } else {
+            hidePbl(n);
+        }
+    }
+});
+
 prevScrambleButton.addEventListener("click", () => {
+    if (usingTimer()) return;
     if (scrambleList.length == 0) return;
     scrambleOffset = Math.min(scrambleOffset + 1, scrambleList.length - 1);
     currentScrambleEl.textContent =
@@ -1432,6 +1468,7 @@ prevScrambleButton.addEventListener("click", () => {
 });
 
 nextScrambleButton.addEventListener("click", () => {
+    if (usingTimer()) return;
     if (scrambleList.length == 0) return;
     scrambleOffset--;
     if (scrambleOffset < 0) {
@@ -1443,18 +1480,13 @@ nextScrambleButton.addEventListener("click", () => {
     }
 });
 
-showSelectionEl.addEventListener("click", () => {
-    for (pbl of possiblePBL) {
-        const n = pblname(pbl);
-        if (selectedPBL.includes(n)) {
-            showPbl(n);
-        } else {
-            hidePbl(n);
-        }
-    }
+openListsEl.addEventListener("click", () => {
+    if(usingTimer()) return
+    openListPopup();
 });
 
 newListEl.addEventListener("click", () => {
+    if(usingTimer()) return
     if (selectedPBL.length == 0) {
         alert("Please select PBLs to create a list!");
         return;
@@ -1496,6 +1528,15 @@ newListEl.addEventListener("click", () => {
     }
 });
 
+selectListEl.addEventListener("click", () => {
+    if (highlightedList == null) {
+        alert("Please click on a list");
+        return;
+    }
+    selectList(highlightedList, false);
+    closePopup();
+});
+
 deleteListEl.addEventListener("click", () => {
     if (highlightedList == null) {
         alert("No list selected");
@@ -1520,19 +1561,6 @@ deleteListEl.addEventListener("click", () => {
     alert("Error");
 });
 
-openListsEl.addEventListener("click", () => {
-    openListPopup();
-});
-
-selectListEl.addEventListener("click", () => {
-    if (highlightedList == null) {
-        alert("Please click on a list");
-        return;
-    }
-    selectList(highlightedList, false);
-    closePopup();
-});
-
 trainListEl.addEventListener("click", () => {
     if (highlightedList == null) {
         alert("Please click on a list");
@@ -1554,7 +1582,7 @@ window.addEventListener("keydown", (e) => {
 });
 
 window.addEventListener("keyup", (e) => {
-    if (!canInteractTimer()) return;
+    if (!canInteractTimer()) return
     let isSpace = e.code == "Space";
     timerEndTouch(isSpace);
     if (isSpace) e.preventDefault();
@@ -1572,16 +1600,19 @@ timerBoxEl.addEventListener("touchend", (e) => {
 });
 
 currentScrambleEl.addEventListener("click", () => {
+    if(usingTimer()) return
     if (isPopupOpen || !hasActiveScramble) return;
     openScramblePopup(currentScrambleEl.innerText);
 });
 
 previousScrambleEl.addEventListener("click", () => {
+    if(usingTimer()) return
     if (isPopupOpen || !hasPreviousScramble) return;
     openScramblePopup(scrambleList[scrambleList.length - 2]);
 });
 
 toggleUiEl.addEventListener("click", () => {
+    if(usingTimer()) return
     if (sidebarEl.classList.contains("hidden")) {
         sidebarEl.classList.remove("hidden");
         sidebarEl.classList.add("full-width-mobile");
@@ -1594,6 +1625,7 @@ toggleUiEl.addEventListener("click", () => {
 });
 
 downloadEl.addEventListener("click", () => {
+    if(usingTimer()) return
     const data = JSON.stringify(localStorage);
     const blob = new Blob([data], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -1605,6 +1637,7 @@ downloadEl.addEventListener("click", () => {
 });
 
 uploadEl.addEventListener("click", () => {
+    if(pressStartTime != null) return
     fileEl.click();
 });
 
