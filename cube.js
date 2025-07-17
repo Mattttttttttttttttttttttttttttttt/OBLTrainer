@@ -945,8 +945,8 @@ function getLocalStorageData() {
     const storageSelectedPBL = localStorage.getItem("selectedPBL");
     if (storageSelectedPBL !== null) {
         selectedPBL = JSON.parse(storageSelectedPBL);
-        for (k of selectedPBL) {
-            document.getElementById(k).classList.add("checked");
+        for (let k of selectedPBL) {
+            selectPBL(k)
         }
         if (eachCase) {
             remainingPBL = structuredClone(selectedPBL);
@@ -954,10 +954,10 @@ function getLocalStorageData() {
         generateScramble();
         if (selectedPBL.length != 0) {
             for (let pbl of possiblePBL) {
-                hidePbl(pblname(pbl));
+                hidePBL(pblname(pbl));
             }
             for (let pbl of selectedPBL) {
-                showPbl(pbl);
+                showPBL(pbl);
             }
         }
     }
@@ -972,6 +972,7 @@ function getLocalStorageData() {
 
 function saveSelectedPBL() {
     localStorage.setItem("selectedPBL", JSON.stringify(selectedPBL));
+    if (!hasActiveScramble || selectedPBL.length == 0) generateScramble();
 }
 
 function saveUserLists() {
@@ -1013,6 +1014,7 @@ async function init() {
             possiblePBL.push([t, b]);
         }
     }
+
     possiblePBL.splice(0, 1);
     let buttons = "";
     for ([t, b] of possiblePBL) {
@@ -1021,7 +1023,6 @@ async function init() {
     }
     pblListEl.innerHTML += buttons;
 
-    console.log(eachCaseEl.checked);
     if (eachCaseEl.checked) {
         enableGoEachCase();
     }
@@ -1047,14 +1048,12 @@ async function init() {
     // Add event listener to each button, so we can click it
     document.querySelectorAll(".case").forEach((caseEl) => {
         caseEl.addEventListener("click", () => {
-            caseEl.classList.toggle("checked");
-            pbl = caseEl.id;
-            if (caseEl.classList.contains("checked")) {
-                selectPBL(pbl);
-                if (selectedPBL.length == 1) generateScramble();
+            const isChecked = caseEl.classList.contains("checked")
+            n = caseEl.id;
+            if(isChecked) {
+                deselectPBL(n)
             } else {
-                deselectPBL(pbl);
-                if (selectedPBL.length == 0) generateScramble();
+                selectPBL(n)
             }
             saveSelectedPBL();
         });
@@ -1073,22 +1072,25 @@ async function init() {
             addDefaultLists();
         })
         .catch((error) => console.error("Failed to fetch data:", error));
+        
 }
 
-function updateSelection() {
-    selectedPBL = [];
-    for (pbl of possiblePBL) {
-        const e = document.getElementById(pblname(pbl));
-        if (e.classList.contains("checked")) {
-            selectedPBL.push(e.id);
-            if(eachCase) {
-                remainingPBL.push(e.id)
-            }
-        }
-    }
-    saveSelectedPBL();
-    if (!hasActiveScramble || selectedPBL.length == 0) generateScramble();
-}
+// function updateSelection() {
+//     selectedPBL = [];
+//     for (pbl of possiblePBL) {
+//         const e = document.getElementById(pblname(pbl));
+//         if (e.classList.contains("checked")) {
+//             selectedPBL.push(e.id);
+//             if(eachCase && !remainingPBL.includes(e.id)) {
+//                 remainingPBL.push(e.id)
+//             }
+//         } else if(remainingPBL.includes(e.id)) {
+//             remainingPBL.splice(remainingPBL.indexOf(e.id), 1)
+//         }
+//     }
+//     saveSelectedPBL();
+//     if (!hasActiveScramble || selectedPBL.length == 0) generateScramble();
+// }
 
 function isPll(pll, filter) {
     special = ["opp", "adj", "pn", "pj"];
@@ -1129,7 +1131,7 @@ function generateScramble() {
     if (eachCase) {
         if (remainingPBL.length == 0) {
             remainingPBL = structuredClone(selectedPBL)
-            console.log("Gone through each case")
+            
         }
         let caseNum = randInt(0, remainingPBL.length - 1);
         pblChoice = remainingPBL.splice(caseNum, 1)[0]
@@ -1138,7 +1140,6 @@ function generateScramble() {
     }
 
     pblChoice += "-+"[randInt(0, 1)];
-    console.log(pblChoice);
 
     scramble = generators[pblChoice];
     // Add random begin and end layer moves
@@ -1178,15 +1179,15 @@ function generateScramble() {
 
 function showAll() {
     for (let pbl of possiblePBL) {
-        showPbl(pblname(pbl));
+        showPBL(pblname(pbl));
     }
 }
 
-function hidePbl(text) {
+function hidePBL(text) {
     document.getElementById(text).classList.add("hidden");
 }
 
-function showPbl(text) {
+function showPBL(text) {
     document.getElementById(text).classList.remove("hidden");
 }
 
@@ -1257,22 +1258,28 @@ function selectList(listName, setSelection) {
     } else {
         list = userLists[listName];
     }
-    for (let k of Object.keys(list)) {
-        if (setSelection) {
-            let elem = document.getElementById(k);
-            if (list[k]) {
-                elem.classList.add("checked");
+    if(setSelection) {
+        for(let [pbl, inlist] of Object.entries(list)) {
+            if(inlist) {
+                console.log("Adding pbl", pbl)
+                showPBL(pbl)
+                selectPBL(pbl)
             } else {
-                elem.classList.remove("checked");
+                hidePBL(pbl)
+                deselectPBL(pbl)
             }
         }
-        if (list[k]) {
-            showPbl(k);
-        } else {
-            hidePbl(k);
+
+        saveSelectedPBL();
+    } else {
+        for(let [pbl, inlist] of Object.entries(list)) {
+            if(inlist) {
+                showPBL(pbl)
+            } else {
+                hidePBL(pbl)
+            }
         }
     }
-    updateSelection();
     saveUserLists();
 }
 
@@ -1291,7 +1298,6 @@ function validName(n) {
 
 function openScramblePopup(scramble) {
     if (usingTimer()) return;
-    console.log(scramble);
     isPopupOpen = true;
     scramblePopupEl.classList.add("open");
 
@@ -1355,17 +1361,24 @@ function timerBeginTouch(spaceEquivalent) {
 
 function selectPBL(pbl) {
     document.getElementById(pbl).classList.add("checked");
-    selectedPBL.push(pbl);
-    if (eachCase) {
+    if(!selectedPBL.includes(pbl)) {
+        selectedPBL.push(pbl);
+        console.log(pbl)
+    }
+    if (eachCase && !remainingPBL.includes(pbl)) {
         remainingPBL.push(pbl);
     }
 }
 
 function deselectPBL(pbl) {
+    console.log("Deselect")
     document.getElementById(pbl).classList.remove("checked");
-    selectedPBL.splice(selectedPBL.indexOf(pbl));
+    if(selectedPBL.includes(pbl)) {
+        selectedPBL.splice(selectedPBL.indexOf(pbl), 1);
+        console.log("Removed", pbl)
+    }
     if (eachCase && remainingPBL.includes(pbl)) {
-        remainingPBL.splice(remainingPBL.indexOf(pbl))
+        remainingPBL.splice(remainingPBL.indexOf(pbl), 1)
     }
 }
 
@@ -1396,32 +1409,32 @@ function enableGoEachCase() {
 init();
 
 filterInputEl.addEventListener("input", () => {
-    filterInputEl.value = filterInputEl.value.replace(/[^a-zA-Z/ ]+/g, "");
+    filterInputEl.value = filterInputEl.value.replace(/[^a-zA-Z/\- ]+/g, "");
     setHighlightedList(null);
     for (pbl of possiblePBL) {
         const n = pblname(pbl);
         if (passesFilter(pbl, filterInputEl.value)) {
-            showPbl(n);
+            showPBL(n);
         } else {
-            hidePbl(n);
+            hidePBL(n);
         }
     }
 });
 
 selectAllEl.addEventListener("click", () => {
     if (usingTimer()) return;
-    for (i of pblListEl.children) {
-        i.classList.add("checked");
+    for(let pbl of possiblePBL) {
+        selectPBL(pblname(pbl))
     }
-    updateSelection();
+    saveSelectedPBL();
 });
 
 deselectAllEl.addEventListener("click", () => {
     if (usingTimer()) return;
-    for (i of pblListEl.children) {
-        i.classList.remove("checked");
+    for(let pbl of possiblePBL) {
+        deselectPBL(pblname(pbl))
     }
-    updateSelection();
+    saveSelectedPBL();
 });
 
 selectTheseEl.addEventListener("click", () => {
@@ -1431,15 +1444,17 @@ selectTheseEl.addEventListener("click", () => {
             selectPBL(i.id);
         }
     }
-    updateSelection();
+    saveSelectedPBL();
 });
 
 deselectTheseEl.addEventListener("click", () => {
     if (usingTimer()) return;
     for (i of pblListEl.children) {
-        if (!i.classList.contains("hidden")) i.classList.remove("checked");
+        if (!i.classList.contains("hidden")) {
+            deselectPBL(i.id);
+        }
     }
-    updateSelection();
+    saveSelectedPBL();
 });
 
 showAllEl.addEventListener("click", () => {
@@ -1452,9 +1467,9 @@ showSelectionEl.addEventListener("click", () => {
     for (pbl of possiblePBL) {
         const n = pblname(pbl);
         if (selectedPBL.includes(n)) {
-            showPbl(n);
+            showPBL(n);
         } else {
-            hidePbl(n);
+            hidePBL(n);
         }
     }
 });
@@ -1648,7 +1663,6 @@ fileEl.addEventListener("change", (e) => {
     reader.onload = () => {
         try {
             jsonData = JSON.parse(reader.result);
-            console.log("Data:", jsonData);
             localStorage.setItem("selectedPBL", jsonData["selectedPBL"]);
             localStorage.setItem("userLists", jsonData["userLists"]);
             getLocalStorageData();
