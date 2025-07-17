@@ -846,10 +846,9 @@ let selectedPBL = [];
 let scrambleList = [];
 
 let previousScramble = null;
-let shuffledSelection;
 
+let remainingPBL = [];
 let eachCase = false;
-let caseNum = 0;
 
 let defaultLists = {};
 let userLists = {};
@@ -926,7 +925,7 @@ const timerEl = document.getElementById("timer");
 const timerBoxEl = document.getElementById("timerbox");
 
 function usingTimer() {
-    return isRunning || pressStartTime != null
+    return isRunning || pressStartTime != null;
 }
 
 function pblname(pbl) {
@@ -949,8 +948,8 @@ function getLocalStorageData() {
         for (k of selectedPBL) {
             document.getElementById(k).classList.add("checked");
         }
-        if(eachCase) {
-            shuffledSelection = structuredClone(selectedPBL)
+        if (eachCase) {
+            remainingPBL = structuredClone(selectedPBL);
         }
         generateScramble();
         if (selectedPBL.length != 0) {
@@ -1022,9 +1021,9 @@ async function init() {
     }
     pblListEl.innerHTML += buttons;
 
-    console.log(eachCaseEl.checked)
-    if(eachCaseEl.checked) {
-        enableGoEachCase()
+    console.log(eachCaseEl.checked);
+    if (eachCaseEl.checked) {
+        enableGoEachCase();
     }
 
     // Load generators
@@ -1051,10 +1050,10 @@ async function init() {
             caseEl.classList.toggle("checked");
             pbl = caseEl.id;
             if (caseEl.classList.contains("checked")) {
-                selectPBL(pbl)
+                selectPBL(pbl);
                 if (selectedPBL.length == 1) generateScramble();
             } else {
-                deselectPBL(pbl)
+                deselectPBL(pbl);
                 if (selectedPBL.length == 0) generateScramble();
             }
             saveSelectedPBL();
@@ -1074,19 +1073,19 @@ async function init() {
             addDefaultLists();
         })
         .catch((error) => console.error("Failed to fetch data:", error));
-
 }
 
 function updateSelection() {
     selectedPBL = [];
-    shuffledSelection = [];
     for (pbl of possiblePBL) {
         const e = document.getElementById(pblname(pbl));
         if (e.classList.contains("checked")) {
             selectedPBL.push(e.id);
+            if(eachCase) {
+                remainingPBL.push(e.id)
+            }
         }
     }
-    shuffledSelection = structuredClone(selectedPBL)
     saveSelectedPBL();
     if (!hasActiveScramble || selectedPBL.length == 0) generateScramble();
 }
@@ -1124,18 +1123,16 @@ function generateScramble() {
         timerEl.textContent = "--:--";
         currentScrambleEl.textContent = "Scramble will show up here";
         hasActiveScramble = false;
-        scrambleList = []
+        scrambleList = [];
         return;
     }
     if (eachCase) {
-        console.log("Each case!")
-        if (caseNum >= selectedPBL.length) {
-            caseNum = 0;
-            shuffle(shuffledSelection);
-            console.log("Looped and shuffled", shuffledSelection)
+        if (remainingPBL.length == 0) {
+            remainingPBL = structuredClone(selectedPBL)
+            console.log("Gone through each case")
         }
-        pblChoice = shuffledSelection[caseNum];
-        caseNum++;
+        let caseNum = randInt(0, remainingPBL.length - 1);
+        pblChoice = remainingPBL.splice(caseNum, 1)[0]
     } else {
         pblChoice = selectedPBL[randInt(0, selectedPBL.length - 1)];
     }
@@ -1166,7 +1163,7 @@ function generateScramble() {
         end
     ).replaceAll("/", " / ");
     if (scrambleList.length != 0) {
-        previousScramble = scrambleList[scrambleList.length - 1]
+        previousScramble = scrambleList[scrambleList.length - 1];
         previousScrambleEl.textContent =
             "Previous scramble : " + previousScramble;
         hasPreviousScramble = true;
@@ -1294,7 +1291,7 @@ function validName(n) {
 
 function openScramblePopup(scramble) {
     if (usingTimer()) return;
-    console.log(scramble)
+    console.log(scramble);
     isPopupOpen = true;
     scramblePopupEl.classList.add("open");
 
@@ -1343,7 +1340,7 @@ function timerBeginTouch(spaceEquivalent) {
         stopTimer();
         generateScramble();
         if (!spaceEquivalent) otherKeyPressed += 1;
-    } else if (spaceEquivalent && otherKeyPressed<=0) {
+    } else if (spaceEquivalent && otherKeyPressed <= 0) {
         if (!pressStartTime) {
             pressStartTime = performance.now();
             setColor("red");
@@ -1357,18 +1354,18 @@ function timerBeginTouch(spaceEquivalent) {
 }
 
 function selectPBL(pbl) {
-    document.getElementById(pbl).classList.add("checked")
-    selectedPBL.push(pbl)
-    if(eachCase) {
-        shuffledSelection.push(pbl)
+    document.getElementById(pbl).classList.add("checked");
+    selectedPBL.push(pbl);
+    if (eachCase) {
+        remainingPBL.push(pbl);
     }
 }
 
 function deselectPBL(pbl) {
-    document.getElementById(pbl).classList.remove("checked")
-    selectedPBL.splice(selectedPBL.indexOf(pbl))
-    if(eachCase) {
-        shuffledSelection.splice(shuffledSelection.indexOf(pbl))
+    document.getElementById(pbl).classList.remove("checked");
+    selectedPBL.splice(selectedPBL.indexOf(pbl));
+    if (eachCase && remainingPBL.includes(pbl)) {
+        remainingPBL.splice(remainingPBL.indexOf(pbl))
     }
 }
 
@@ -1391,8 +1388,8 @@ function timerEndTouch(spaceEquivalent) {
 }
 
 function enableGoEachCase() {
-    eachCase = true
-    shuffledSelection = structuredClone(selectedPBL)
+    eachCase = true;
+    remainingPBL = structuredClone(selectedPBL);
     caseNum = 0;
 }
 
@@ -1431,7 +1428,7 @@ selectTheseEl.addEventListener("click", () => {
     if (usingTimer()) return;
     for (i of pblListEl.children) {
         if (!i.classList.contains("hidden")) {
-            selectPBL(i.id)
+            selectPBL(i.id);
         }
     }
     updateSelection();
@@ -1451,7 +1448,7 @@ showAllEl.addEventListener("click", () => {
 });
 
 showSelectionEl.addEventListener("click", () => {
-    if(usingTimer()) return;
+    if (usingTimer()) return;
     for (pbl of possiblePBL) {
         const n = pblname(pbl);
         if (selectedPBL.includes(n)) {
@@ -1484,12 +1481,12 @@ nextScrambleButton.addEventListener("click", () => {
 });
 
 openListsEl.addEventListener("click", () => {
-    if(usingTimer()) return
+    if (usingTimer()) return;
     openListPopup();
 });
 
 newListEl.addEventListener("click", () => {
-    if(usingTimer()) return
+    if (usingTimer()) return;
     if (selectedPBL.length == 0) {
         alert("Please select PBLs to create a list!");
         return;
@@ -1585,7 +1582,7 @@ window.addEventListener("keydown", (e) => {
 });
 
 window.addEventListener("keyup", (e) => {
-    if (!canInteractTimer()) return
+    if (!canInteractTimer()) return;
     let isSpace = e.code == "Space";
     timerEndTouch(isSpace);
     if (isSpace) e.preventDefault();
@@ -1603,19 +1600,19 @@ timerBoxEl.addEventListener("touchend", (e) => {
 });
 
 currentScrambleEl.addEventListener("click", () => {
-    if(usingTimer()) return
+    if (usingTimer()) return;
     if (isPopupOpen || !hasActiveScramble) return;
     openScramblePopup(currentScrambleEl.innerText);
 });
 
 previousScrambleEl.addEventListener("click", () => {
-    if(usingTimer()) return
+    if (usingTimer()) return;
     if (isPopupOpen || !hasPreviousScramble) return;
     openScramblePopup(previousScramble);
 });
 
 toggleUiEl.addEventListener("click", () => {
-    if(usingTimer()) return
+    if (usingTimer()) return;
     if (sidebarEl.classList.contains("hidden")) {
         sidebarEl.classList.remove("hidden");
         sidebarEl.classList.add("full-width-mobile");
@@ -1628,7 +1625,7 @@ toggleUiEl.addEventListener("click", () => {
 });
 
 downloadEl.addEventListener("click", () => {
-    if(usingTimer()) return
+    if (usingTimer()) return;
     const data = JSON.stringify(localStorage);
     const blob = new Blob([data], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -1640,7 +1637,7 @@ downloadEl.addEventListener("click", () => {
 });
 
 uploadEl.addEventListener("click", () => {
-    if(pressStartTime != null) return
+    if (pressStartTime != null) return;
     fileEl.click();
 });
 
@@ -1665,7 +1662,7 @@ fileEl.addEventListener("change", (e) => {
 eachCaseEl.addEventListener("change", (e) => {
     eachCase = eachCaseEl.checked;
     if (eachCase) {
-        enableGoEachCase()
+        enableGoEachCase();
     }
 });
 
