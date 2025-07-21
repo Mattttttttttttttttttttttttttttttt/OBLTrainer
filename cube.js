@@ -848,7 +848,9 @@ let scrambleList = [];
 let previousScramble = null;
 
 let remainingPBL = [];
-let eachCase = false;
+let eachCase = 0; // 0 = random, n = get each case n times before moving on
+const MIN_EACHCASE = 2;
+const MAX_EACHCASE = 5;
 
 let defaultLists = {};
 let userLists = {};
@@ -946,7 +948,7 @@ function getLocalStorageData() {
     if (storageSelectedPBL !== null) {
         selectedPBL = JSON.parse(storageSelectedPBL);
         for (let k of selectedPBL) {
-            selectPBL(k)
+            selectPBL(k);
         }
         if (eachCase) {
             remainingPBL = structuredClone(selectedPBL);
@@ -1023,10 +1025,6 @@ async function init() {
     }
     pblListEl.innerHTML += buttons;
 
-    if (eachCaseEl.checked) {
-        enableGoEachCase();
-    }
-
     // Load generators
     await fetch("./generators.json")
         .then((response) => {
@@ -1048,12 +1046,12 @@ async function init() {
     // Add event listener to each button, so we can click it
     document.querySelectorAll(".case").forEach((caseEl) => {
         caseEl.addEventListener("click", () => {
-            const isChecked = caseEl.classList.contains("checked")
+            const isChecked = caseEl.classList.contains("checked");
             n = caseEl.id;
-            if(isChecked) {
-                deselectPBL(n)
+            if (isChecked) {
+                deselectPBL(n);
             } else {
-                selectPBL(n)
+                selectPBL(n);
             }
             saveSelectedPBL();
         });
@@ -1072,7 +1070,12 @@ async function init() {
             addDefaultLists();
         })
         .catch((error) => console.error("Failed to fetch data:", error));
-        
+
+    if (eachCaseEl.checked) {
+        enableGoEachCase(1);
+    } else {
+        enableGoEachCase(randInt(MIN_EACHCASE, MAX_EACHCASE));
+    }
 }
 
 // function updateSelection() {
@@ -1105,8 +1108,9 @@ function passesFilter(pbl, filter) {
     let d = pbl[1].toLowerCase();
     filter = filter.replace("/", " ").toLowerCase();
     if (filter.includes(" ")) {
-        arr = filter.match(/[^ ]+/g).slice(0, 2);
+        arr = filter.match(/[^ ]+/g)
         if (arr != null) {
+            arr = arr.slice(0, 2);
             [a, b] = arr.slice(0, 2);
             if (a && b) {
                 return (
@@ -1128,13 +1132,12 @@ function generateScramble() {
         scrambleList = [];
         return;
     }
-    if (eachCase) {
+    if (eachCase > 0) {
         if (remainingPBL.length == 0) {
-            remainingPBL = structuredClone(selectedPBL)
-            
+            enableGoEachCase(randInt(MIN_EACHCASE, MAX_EACHCASE));
         }
         let caseNum = randInt(0, remainingPBL.length - 1);
-        pblChoice = remainingPBL.splice(caseNum, 1)[0]
+        pblChoice = remainingPBL.splice(caseNum, 1)[0];
     } else {
         pblChoice = selectedPBL[randInt(0, selectedPBL.length - 1)];
     }
@@ -1191,6 +1194,26 @@ function showPBL(text) {
     document.getElementById(text).classList.remove("hidden");
 }
 
+function selectPBL(pbl) {
+    document.getElementById(pbl).classList.add("checked");
+    if (!selectedPBL.includes(pbl)) {
+        selectedPBL.push(pbl);
+    }
+    if (eachCase > 0 && !remainingPBL.includes(pbl)) {
+        remainingPBL.concat(Array(eachCase).fill(pbl));
+    }
+}
+
+function deselectPBL(pbl) {
+    document.getElementById(pbl).classList.remove("checked");
+    if (selectedPBL.includes(pbl)) {
+        selectedPBL = selectedPBL.filter((a) => a != pbl);
+    }
+    if (eachCase && remainingPBL.includes(pbl)) {
+        remainingPBL = remainingPBL.filter((a) => a != pbl);
+    }
+}
+
 function formatTime(ms) {
     const seconds = Math.floor(ms / 1000);
     const centiseconds = Math.floor((ms % 1000) / 10);
@@ -1199,7 +1222,8 @@ function formatTime(ms) {
 
 function setColor(className) {
     timerEl.classList.remove("red", "green");
-    timerEl.classList.add(className);
+    if(className != "")
+        timerEl.classList.add(className);
 }
 
 function startTimer() {
@@ -1216,6 +1240,61 @@ function startTimer() {
 function stopTimer() {
     clearInterval(intervalId);
     isRunning = false;
+}
+
+function resetTimer() {
+    stopTimer()
+    pressStartTime = null;
+    holdTimeout = null;
+    timerStart = null;
+    intervalId = null;
+    readyToStart = false;
+    otherKeyPressed = 0;
+    if(canInteractTimer()) {
+        timerEl.textContent = "0.00"
+    } else {
+        timerEl.textContent = "--:--"
+    }
+    setColor("")
+    console.log("Reset timer")
+}
+function timerBeginTouch(spaceEquivalent) {
+    if (!hasActiveScramble) return;
+    if (document.activeElement == filterInputEl) return;
+    if (isRunning) {
+        // Stop timer
+        stopTimer();
+        generateScramble();
+        if (!spaceEquivalent) otherKeyPressed += 1;
+    } else if (spaceEquivalent && otherKeyPressed <= 0) {
+        if (!pressStartTime) {
+            pressStartTime = performance.now();
+            setColor("red");
+            // Après 200ms, passer en vert
+            holdTimeout = setTimeout(() => {
+                setColor("green");
+                readyToStart = true;
+            }, startDelay);
+        }
+    }
+}
+
+function timerEndTouch(spaceEquivalent) {
+    if (spaceEquivalent) {
+        const heldTime = performance.now() - pressStartTime;
+        clearTimeout(holdTimeout);
+        if (!isRunning) {
+            if (heldTime >= startDelay && readyToStart) {
+                startTimer();
+            } else {
+                setColor();
+            }
+        }
+        pressStartTime = null;
+        readyToStart = false;
+    } else {
+        otherKeyPressed = Math.max(0, otherKeyPressed - 1);
+    }
 }
 
 function addUserLists() {
@@ -1258,25 +1337,24 @@ function selectList(listName, setSelection) {
     } else {
         list = userLists[listName];
     }
-    if(setSelection) {
-        for(let [pbl, inlist] of Object.entries(list)) {
-            if(inlist) {
-                console.log("Adding pbl", pbl)
-                showPBL(pbl)
-                selectPBL(pbl)
+    if (setSelection) {
+        for (let [pbl, inlist] of Object.entries(list)) {
+            if (inlist) {
+                showPBL(pbl);
+                selectPBL(pbl);
             } else {
-                hidePBL(pbl)
-                deselectPBL(pbl)
+                hidePBL(pbl);
+                deselectPBL(pbl);
             }
         }
 
         saveSelectedPBL();
     } else {
-        for(let [pbl, inlist] of Object.entries(list)) {
-            if(inlist) {
-                showPBL(pbl)
+        for (let [pbl, inlist] of Object.entries(list)) {
+            if (inlist) {
+                showPBL(pbl);
             } else {
-                hidePBL(pbl)
+                hidePBL(pbl);
             }
         }
     }
@@ -1338,72 +1416,9 @@ function canInteractTimer() {
     );
 }
 
-function timerBeginTouch(spaceEquivalent) {
-    if (!hasActiveScramble) return;
-    if (document.activeElement == filterInputEl) return;
-    if (isRunning) {
-        // Stop timer
-        stopTimer();
-        generateScramble();
-        if (!spaceEquivalent) otherKeyPressed += 1;
-    } else if (spaceEquivalent && otherKeyPressed <= 0) {
-        if (!pressStartTime) {
-            pressStartTime = performance.now();
-            setColor("red");
-            // Après 200ms, passer en vert
-            holdTimeout = setTimeout(() => {
-                setColor("green");
-                readyToStart = true;
-            }, startDelay);
-        }
-    }
-}
-
-function selectPBL(pbl) {
-    document.getElementById(pbl).classList.add("checked");
-    if(!selectedPBL.includes(pbl)) {
-        selectedPBL.push(pbl);
-        console.log(pbl)
-    }
-    if (eachCase && !remainingPBL.includes(pbl)) {
-        remainingPBL.push(pbl);
-    }
-}
-
-function deselectPBL(pbl) {
-    console.log("Deselect")
-    document.getElementById(pbl).classList.remove("checked");
-    if(selectedPBL.includes(pbl)) {
-        selectedPBL.splice(selectedPBL.indexOf(pbl), 1);
-        console.log("Removed", pbl)
-    }
-    if (eachCase && remainingPBL.includes(pbl)) {
-        remainingPBL.splice(remainingPBL.indexOf(pbl), 1)
-    }
-}
-
-function timerEndTouch(spaceEquivalent) {
-    if (spaceEquivalent) {
-        const heldTime = performance.now() - pressStartTime;
-        clearTimeout(holdTimeout);
-        if (!isRunning) {
-            if (heldTime >= startDelay && readyToStart) {
-                startTimer();
-            } else {
-                setColor();
-            }
-        }
-        pressStartTime = null;
-        readyToStart = false;
-    } else {
-        otherKeyPressed = Math.max(0, otherKeyPressed - 1);
-    }
-}
-
-function enableGoEachCase() {
-    eachCase = true;
-    remainingPBL = structuredClone(selectedPBL);
-    caseNum = 0;
+function enableGoEachCase(count) {
+    eachCase = count;
+    remainingPBL = selectedPBL.flatMap((el) => Array(eachCase).fill(el));
 }
 
 init();
@@ -1423,16 +1438,16 @@ filterInputEl.addEventListener("input", () => {
 
 selectAllEl.addEventListener("click", () => {
     if (usingTimer()) return;
-    for(let pbl of possiblePBL) {
-        selectPBL(pblname(pbl))
+    for (let pbl of possiblePBL) {
+        selectPBL(pblname(pbl));
     }
     saveSelectedPBL();
 });
 
 deselectAllEl.addEventListener("click", () => {
     if (usingTimer()) return;
-    for(let pbl of possiblePBL) {
-        deselectPBL(pblname(pbl))
+    for (let pbl of possiblePBL) {
+        deselectPBL(pblname(pbl));
     }
     saveSelectedPBL();
 });
@@ -1538,9 +1553,9 @@ newListEl.addEventListener("click", () => {
             newList[n] = 0;
         }
         userLists[newListName] = newList;
-        addUserLists();
-        setHighlightedList(newListName);
     }
+    addUserLists();
+    setHighlightedList(newListName);
 });
 
 selectListEl.addEventListener("click", () => {
@@ -1586,10 +1601,16 @@ trainListEl.addEventListener("click", () => {
 });
 
 window.addEventListener("keydown", (e) => {
-    if (isPopupOpen) {
-        if (e.code == "Escape") closePopup();
+    if (e.code == "Escape") {
+        if (isPopupOpen) {
+            closePopup();
+        }
+        if (usingTimer()) {
+            resetTimer()
+        }
         return;
     }
+
     if (!canInteractTimer()) return;
     let isSpace = e.code == "Space";
     timerBeginTouch(isSpace);
@@ -1602,6 +1623,12 @@ window.addEventListener("keyup", (e) => {
     timerEndTouch(isSpace);
     if (isSpace) e.preventDefault();
 });
+
+document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState == "hidden") {
+        resetTimer()
+    }
+})
 
 timerBoxEl.addEventListener("touchstart", (e) => {
     if (isPopupOpen) return;
@@ -1674,9 +1701,9 @@ fileEl.addEventListener("change", (e) => {
 });
 
 eachCaseEl.addEventListener("change", (e) => {
-    eachCase = eachCaseEl.checked;
-    if (eachCase) {
-        enableGoEachCase();
+    eachCase = eachCaseEl.checked ? 1 : randInt(MIN_EACHCASE, MAX_EACHCASE);
+    if (eachCase == 1) {
+        enableGoEachCase(eachCase);
     }
 });
 
