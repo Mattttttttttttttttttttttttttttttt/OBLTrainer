@@ -1569,7 +1569,6 @@ selectListEl.addEventListener("click", () => {
 
 deleteListEl.addEventListener("click", () => {
     if (highlightedList == null) {
-        alert("No list selected");
         return;
     }
     if (Object.keys(userLists).includes(highlightedList)) {
@@ -1581,11 +1580,6 @@ deleteListEl.addEventListener("click", () => {
         return;
     }
     if (Object.keys(defaultLists).includes(highlightedList)) {
-        alert("You can't delete a default list");
-        return;
-    }
-    if (highlightedList == null) {
-        alert("Please select a list to delete it");
         return;
     }
     alert("Error");
