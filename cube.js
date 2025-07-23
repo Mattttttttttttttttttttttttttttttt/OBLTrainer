@@ -850,7 +850,7 @@ let previousScramble = null;
 let remainingPBL = [];
 let eachCase = 0; // 0 = random, n = get each case n times before moving on
 const MIN_EACHCASE = 2;
-const MAX_EACHCASE = 5;
+const MAX_EACHCASE = 4;
 
 let defaultLists = {};
 let userLists = {};
@@ -950,8 +950,10 @@ function getLocalStorageData() {
         for (let k of selectedPBL) {
             selectPBL(k);
         }
-        if (eachCase) {
-            remainingPBL = structuredClone(selectedPBL);
+        if (eachCaseEl.checked) {
+            enableGoEachCase(1);
+        } else {
+            enableGoEachCase(randInt(MIN_EACHCASE, MAX_EACHCASE));
         }
         generateScramble();
         if (selectedPBL.length != 0) {
@@ -1070,30 +1072,7 @@ async function init() {
             addDefaultLists();
         })
         .catch((error) => console.error("Failed to fetch data:", error));
-
-    if (eachCaseEl.checked) {
-        enableGoEachCase(1);
-    } else {
-        enableGoEachCase(randInt(MIN_EACHCASE, MAX_EACHCASE));
-    }
 }
-
-// function updateSelection() {
-//     selectedPBL = [];
-//     for (pbl of possiblePBL) {
-//         const e = document.getElementById(pblname(pbl));
-//         if (e.classList.contains("checked")) {
-//             selectedPBL.push(e.id);
-//             if(eachCase && !remainingPBL.includes(e.id)) {
-//                 remainingPBL.push(e.id)
-//             }
-//         } else if(remainingPBL.includes(e.id)) {
-//             remainingPBL.splice(remainingPBL.indexOf(e.id), 1)
-//         }
-//     }
-//     saveSelectedPBL();
-//     if (!hasActiveScramble || selectedPBL.length == 0) generateScramble();
-// }
 
 function isPll(pll, filter) {
     special = ["opp", "adj", "pn", "pj"];
@@ -1108,7 +1087,7 @@ function passesFilter(pbl, filter) {
     let d = pbl[1].toLowerCase();
     filter = filter.replace("/", " ").toLowerCase();
     if (filter.includes(" ")) {
-        arr = filter.match(/[^ ]+/g)
+        arr = filter.match(/[^ ]+/g);
         if (arr != null) {
             arr = arr.slice(0, 2);
             [a, b] = arr.slice(0, 2);
@@ -1200,7 +1179,7 @@ function selectPBL(pbl) {
         selectedPBL.push(pbl);
     }
     if (eachCase > 0 && !remainingPBL.includes(pbl)) {
-        remainingPBL.concat(Array(eachCase).fill(pbl));
+        remainingPBL = remainingPBL.concat(Array(eachCase).fill(pbl));
     }
 }
 
@@ -1222,8 +1201,7 @@ function formatTime(ms) {
 
 function setColor(className) {
     timerEl.classList.remove("red", "green");
-    if(className != "")
-        timerEl.classList.add(className);
+    if (className != "") timerEl.classList.add(className);
 }
 
 function startTimer() {
@@ -1243,20 +1221,20 @@ function stopTimer() {
 }
 
 function resetTimer() {
-    stopTimer()
+    stopTimer();
     pressStartTime = null;
     holdTimeout = null;
     timerStart = null;
     intervalId = null;
     readyToStart = false;
     otherKeyPressed = 0;
-    if(canInteractTimer()) {
-        timerEl.textContent = "0.00"
+    if (canInteractTimer()) {
+        timerEl.textContent = "0.00";
     } else {
-        timerEl.textContent = "--:--"
+        timerEl.textContent = "--:--";
     }
-    setColor("")
-    console.log("Reset timer")
+    setColor("");
+    console.log("Reset timer");
 }
 function timerBeginTouch(spaceEquivalent) {
     if (!hasActiveScramble) return;
@@ -1600,7 +1578,7 @@ window.addEventListener("keydown", (e) => {
             closePopup();
         }
         if (usingTimer()) {
-            resetTimer()
+            resetTimer();
         }
         return;
     }
@@ -1619,10 +1597,10 @@ window.addEventListener("keyup", (e) => {
 });
 
 document.addEventListener("visibilitychange", () => {
-    if(document.visibilityState == "hidden") {
-        resetTimer()
+    if (document.visibilityState == "hidden") {
+        resetTimer();
     }
-})
+});
 
 timerBoxEl.addEventListener("touchstart", (e) => {
     if (isPopupOpen) return;
