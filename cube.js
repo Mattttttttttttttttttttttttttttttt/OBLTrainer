@@ -1113,7 +1113,10 @@ function generateScramble() {
     }
     if (eachCase > 0) {
         if (remainingPBL.length == 0) {
-            enableGoEachCase(randInt(MIN_EACHCASE, MAX_EACHCASE));
+            let number = eachCaseEl.checked
+                ? 1
+                : randInt(MIN_EACHCASE, MAX_EACHCASE);
+            enableGoEachCase(number);
         }
         let caseNum = randInt(0, remainingPBL.length - 1);
         pblChoice = remainingPBL.splice(caseNum, 1)[0];
