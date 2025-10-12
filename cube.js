@@ -264,7 +264,7 @@ function drawEdge(
     isTopLayer,
     scale = 100,
     sideBlank = false,
-    topBlank = false
+    toOBLank = false
 ) {
     let padding = scale * PADDING;
     let innerLength = scale - padding;
@@ -297,7 +297,7 @@ function drawEdge(
     let layerColor, sideColor;
     if (sideBlank) sideColor = BLANKCOL;
     else sideColor = sideColors[sideCol];
-    if (topBlank) layerColor = BLANKCOL;
+    if (toOBLank) layerColor = BLANKCOL;
     else layerColor = isTopColor ? TOPCOL : BOTCOL;
     // Top part
     drawPolygon([center, il, ir], layerColor);
@@ -312,7 +312,7 @@ function drawCorner(
     isTopLayer,
     scale = 100,
     sideBlank = false,
-    topBlank = false
+    toOBLank = false
 ) {
     let padding = scale * PADDING;
     let innerLength = scale - padding;
@@ -354,7 +354,7 @@ function drawCorner(
 
     // draw
     let layerColor, sideColor0, sideColor1;
-    if (topBlank) layerColor = BLANKCOL;
+    if (toOBLank) layerColor = BLANKCOL;
     else layerColor = isTopColor ? TOPCOL : BOTCOL;
     if (sideBlank) {
         sideColor0 = sideColor1 = BLANKCOL;
@@ -395,107 +395,12 @@ function drawCursor(center, step, scale = 100) {
     ctx.stroke();
 }
 
-const solved = "A1B2C3D45E6F7G8H-";
+// black top
+const solved = "bbbbbbbbwwwwwwww";
 
-// headlights/bars in the back, or FR angle
-const TPLL = {
-    // NO DP
-    "-": "A1B2C3D4",
-    Al: "A1C2D3B4",
-    Ar: "C1A2B3D4",
-    E: "D1C2B3A4",
-    F: "D3B2C1A4",
-    Gal: "A1C4D2B3",
-    Gar: "C2A4B3D1",
-    Gol: "A3C1D2B4",
-    Gor: "C2A3B1D4",
-    H: "A3B4C1D2",
-    Ja: "D4B2C3A1",
-    Jm: "D1B2C4A3",
-    Na: "D4C3B2A1",
-    Nm: "B4A3D2C1",
-    Rl: "D1B3C2A4",
-    Rr: "B4D3A1C2",
-    T: "D1B4C3A2",
-    Ul: "A3B2C4D1",
-    Ur: "A4B2C1D3",
-    V: "C2B1A3D4",
-    Y: "A2D1C3B4",
-    Z: "A2B1C4D3",
-
-    // DP
-    Adj: "A1B2C4D3",
-    Opp: "A3B2C1D4",
-    pJ: "D1B2C3A4",
-    pN: "A1D2C3B4",
-    Ba: "D4B1C3A2",
-    Bm: "D1B3C4A2",
-    Cl: "D2B3C1A4",
-    Cr: "D3B1C2A4",
-    Da: "D2B4C3A1",
-    Dm: "D1B4C2A3",
-    Ka: "D4B3C2A1",
-    Km: "D2B1C4A3",
-    M: "D3B4C1A2",
-    Ol: "A2B3C4D1",
-    Or: "A4B1C2D3",
-    Pl: "D4B2C1A3",
-    Pr: "D3B2C4A1",
-    Q: "D1C4B3A2",
-    Sa: "D4C2B3A1",
-    Sm: "D1C2B4A3",
-    W: "C2D1A3B4",
-    X: "D3C2B1A4",
-};
-
-let BPLL = {
-    // NO DP
-    "-": "5E6F7G8H",
-    Al: "5G6E7F8H",
-    Ar: "5E6G7H8F",
-    E: "5H6G7F8E",
-    F: "6E5G8H7F",
-    Gal: "8E5G7H6F",
-    Gar: "8E6G5H7F",
-    Gol: "7E5G6H8F",
-    Gor: "5E8G6H7F",
-    H: "8F5G6H7E",
-    Ja: "5E7G8H6F",
-    Jm: "7E6G8H5F",
-    Na: "7G6F5E8H",
-    Nm: "7E6H5G8F",
-    Rl: "7F5H8E6G",
-    Rr: "7F8H6E5G",
-    T: "5F8H7E6G",
-    Ul: "6G7H5E8F",
-    Ur: "8G6H5E7F",
-    V: "7G8F6E5H",
-    Y: "7E8H6G5F",
-    Z: "8G7H6E5F",
-
-    // DP
-    Adj: "8G7H5E6F",
-    Opp: "5E8F7G6H",
-    pJ: "7F8H5E6G",
-    pN: "7E8H5G6F",
-    Ba: "5F8H6E7G",
-    Bm: "5F7H8E6G",
-    Cl: "7F6H8E5G",
-    Cr: "7F5H6E8G",
-    Da: "6F8H7E5G",
-    Dm: "8F5H7E6G",
-    Ka: "6F5H8E7G",
-    Km: "8F7H6E5G",
-    M: "5F6H7E8G",
-    Ol: "6G7H8E5F",
-    Or: "8G5H6E7F",
-    Pl: "6H8F7G5E",
-    Pr: "8H5F7G6E",
-    Q: "7H6G5F8E",
-    Sa: "8H6G7F5E",
-    Sm: "6H5G7F8E",
-    W: "7E8F6G5H",
-    X: "7F6E5H8G",
+// "upright"
+const OBL = {
+    "1c": ""
 };
 
 let KARN = {
@@ -523,8 +428,8 @@ let KARN = {
 
 const kmoves = Object.entries(KARN);
 
-function testPLL(layer, list) {
-    for (let [name, value] of Object.entries(list)) {
+function testOBL(layer) {
+    for (let [name, value] of Object.entries(OBL)) {
         if (layer == value) return name;
     }
     return 0;
@@ -535,28 +440,24 @@ function rotateLayer(layer, full) {
     return layer.slice(n) + layer.slice(0, n);
 }
 
-function offsetLayer(layer, top) {
-    const a = top ? "A".charCodeAt(0) : "E".charCodeAt(0);
-    const offnum = top ? 0 : 4;
-    let str = "";
-    for (const s of layer) {
-        if (isNaN(s))
-            str += String.fromCharCode(mod(s.charCodeAt(0) - a + 1, 4) + a);
-        else str += (mod(parseInt(s), 4) + 1 + offnum).toString();
-    }
-    return str;
-}
+// function offsetLayer(layer, top) {
+//     const a = top ? "A".charCodeAt(0) : "E".charCodeAt(0);
+//     const offnum = top ? 0 : 4;
+//     let str = "";
+//     for (const s of layer) {
+//         if (isNaN(s))
+//             str += String.fromCharCode(mod(s.charCodeAt(0) - a + 1, 4) + a);
+//         else str += (mod(parseInt(s), 4) + 1 + offnum).toString();
+//     }
+//     return str;
+// }
 
 function findPLL(layer, top, full = false) {
-    const list = top ? TPLL : BPLL;
+    layer = top ? layer : layer.slice(-1) + layer.slice(0, -1);
     const limit = 4 + 4 * full;
     for (let i = 0; i < limit; i++) {
-        let base = layer;
-        for (let j = 0; j < 4; j++) {
-            let pllName = testPLL(base, list);
-            if (pllName) return pllName;
-            base = offsetLayer(base, top);
-        }
+        let oblName = testPLL(layer);
+        if (oblName) return oblName;
         layer = rotateLayer(layer, full);
     }
     return false;
@@ -689,7 +590,7 @@ class Cube {
         );
     }
 
-    pblCase(full = true) {
+    OBLCase(full = true) {
         const top = findPLL(this.topLayerString(), true, full);
         const bot = findPLL(this.botLayerString(), false, full);
         const bf = (this.barflip ? "+" : "-").toString();
@@ -698,7 +599,7 @@ class Cube {
         return top + "/" + bot + bf;
     }
 
-    setPBL(top, bot, preU, preD, u, d, flip) {
+    setOBL(top, bot, preU, preD, u, d, flip) {
         preU = mod(preU, 4);
         preD = mod(preD, 4);
         u = mod(u, 8);
@@ -841,13 +742,13 @@ class Cube {
 // Variables
 const evenPLL = Object.keys(TPLL).slice(0, 22);
 const oddPLL = Object.keys(TPLL).slice(22);
-let possiblePBL = [];
-let selectedPBL = [];
+let possibleOBL = [];
+let selectedOBL = [];
 let scrambleList = [];
 
 let previousScramble = null;
 
-let remainingPBL = [];
+let remainingOBL = [];
 let eachCase = 0; // 0 = random, n = get each case n times before moving on
 const MIN_EACHCASE = 2;
 const MAX_EACHCASE = 4;
@@ -884,7 +785,7 @@ const fileEl = document.getElementById("fileinput");
 const sidebarEl = document.getElementById("sidebar");
 const contentEl = document.getElementById("content");
 
-const pblListEl = document.getElementById("results");
+const OBLListEl = document.getElementById("results");
 const filterInputEl = document.getElementById("filter");
 
 const eachCaseEl = document.getElementById("allcases");
@@ -910,7 +811,7 @@ const trainListEl = document.getElementById("trainlist");
 const scramblePopupEl = document.getElementById("scram-popup");
 const displayScramEl = document.getElementById("display-scram");
 const canvasWrapperEl = document.getElementById("canvas-wrapper");
-const displayPBLname = document.getElementById("pblname");
+const displayOBLname = document.getElementById("OBLname");
 
 const listPopupEl = document.getElementById("list-popup");
 
@@ -930,8 +831,8 @@ function usingTimer() {
     return isRunning || pressStartTime != null;
 }
 
-function pblname(pbl) {
-    return `${pbl[0]}/${pbl[1]}`;
+function OBLname(OBL) {
+    return `${OBL[0]}/${OBL[1]}`;
 }
 
 function listLength(list) {
@@ -943,12 +844,12 @@ function listLength(list) {
 }
 
 function getLocalStorageData() {
-    // selectedPBL
-    const storageSelectedPBL = localStorage.getItem("selectedPBL");
-    if (storageSelectedPBL !== null) {
-        selectedPBL = JSON.parse(storageSelectedPBL);
-        for (let k of selectedPBL) {
-            selectPBL(k);
+    // selectedOBL
+    const storageSelectedOBL = localStorage.getItem("selectedOBL");
+    if (storageSelectedOBL !== null) {
+        selectedOBL = JSON.parse(storageSelectedOBL);
+        for (let k of selectedOBL) {
+            selectOBL(k);
         }
         if (eachCaseEl.checked) {
             enableGoEachCase(1);
@@ -956,12 +857,12 @@ function getLocalStorageData() {
             enableGoEachCase(randInt(MIN_EACHCASE, MAX_EACHCASE));
         }
         generateScramble();
-        if (selectedPBL.length != 0) {
-            for (let pbl of possiblePBL) {
-                hidePBL(pblname(pbl));
+        if (selectedOBL.length != 0) {
+            for (let OBL of possibleOBL) {
+                hideOBL(OBLname(OBL));
             }
-            for (let pbl of selectedPBL) {
-                showPBL(pbl);
+            for (let OBL of selectedOBL) {
+                showOBL(OBL);
             }
         }
     }
@@ -974,9 +875,9 @@ function getLocalStorageData() {
     }
 }
 
-function saveSelectedPBL() {
-    localStorage.setItem("selectedPBL", JSON.stringify(selectedPBL));
-    if (!hasActiveScramble || selectedPBL.length == 0) generateScramble();
+function saveSelectedOBL() {
+    localStorage.setItem("selectedOBL", JSON.stringify(selectedOBL));
+    if (!hasActiveScramble || selectedOBL.length == 0) generateScramble();
 }
 
 function saveUserLists() {
@@ -1009,23 +910,23 @@ function addListItemEvent(item) {
 }
 
 async function init() {
-    // Compute possible pbls
+    // Compute possible OBLs
     for (let t of evenPLL) {
-        for (let b of evenPLL) possiblePBL.push([t, b]);
+        for (let b of evenPLL) possibleOBL.push([t, b]);
     }
     for (let t of oddPLL) {
         for (let b of oddPLL) {
-            possiblePBL.push([t, b]);
+            possibleOBL.push([t, b]);
         }
     }
 
-    possiblePBL.splice(0, 1);
+    possibleOBL.splice(0, 1);
     let buttons = "";
-    for ([t, b] of possiblePBL) {
+    for ([t, b] of possibleOBL) {
         buttons += `
         <div class="case" id="${t}/${b}">${t} / ${b}</div>`;
     }
-    pblListEl.innerHTML += buttons;
+    OBLListEl.innerHTML += buttons;
 
     // Load generators
     await fetch("./generators.json")
@@ -1042,7 +943,7 @@ async function init() {
             getLocalStorageData();
         })
         .catch((error) => console.error("Failed to fetch data:", error));
-    // Add buttons to the page for each pbl choice
+    // Add buttons to the page for each OBL choice
     // Stored to a temp variable so we edit the page only once, and prevent a lag spike
 
     // Add event listener to each button, so we can click it
@@ -1051,11 +952,11 @@ async function init() {
             const isChecked = caseEl.classList.contains("checked");
             n = caseEl.id;
             if (isChecked) {
-                deselectPBL(n);
+                deselectOBL(n);
             } else {
-                selectPBL(n);
+                selectOBL(n);
             }
-            saveSelectedPBL();
+            saveSelectedOBL();
         });
     });
 
@@ -1082,9 +983,9 @@ function isPll(pll, filter) {
     return pll.startsWith(filter);
 }
 
-function passesFilter(pbl, filter) {
-    let u = pbl[0].toLowerCase();
-    let d = pbl[1].toLowerCase();
+function passesFilter(OBL, filter) {
+    let u = OBL[0].toLowerCase();
+    let d = OBL[1].toLowerCase();
     filter = filter.replace("/", " ").toLowerCase();
     if (filter.includes(" ")) {
         arr = filter.match(/[^ ]+/g);
@@ -1104,7 +1005,7 @@ function passesFilter(pbl, filter) {
 
 function generateScramble() {
     scrambleOffset = 0;
-    if (selectedPBL.length == 0) {
+    if (selectedOBL.length == 0) {
         timerEl.textContent = "--:--";
         currentScrambleEl.textContent = "Scramble will show up here";
         hasActiveScramble = false;
@@ -1112,21 +1013,21 @@ function generateScramble() {
         return;
     }
     if (eachCase > 0) {
-        if (remainingPBL.length == 0) {
+        if (remainingOBL.length == 0) {
             let number = eachCaseEl.checked
                 ? 1
                 : randInt(MIN_EACHCASE, MAX_EACHCASE);
             enableGoEachCase(number);
         }
-        let caseNum = randInt(0, remainingPBL.length - 1);
-        pblChoice = remainingPBL.splice(caseNum, 1)[0];
+        let caseNum = randInt(0, remainingOBL.length - 1);
+        OBLChoice = remainingOBL.splice(caseNum, 1)[0];
     } else {
-        pblChoice = selectedPBL[randInt(0, selectedPBL.length - 1)];
+        OBLChoice = selectedOBL[randInt(0, selectedOBL.length - 1)];
     }
 
-    pblChoice += "-+"[randInt(0, 1)];
+    OBLChoice += "-+"[randInt(0, 1)];
 
-    scramble = generators[pblChoice];
+    scramble = generators[OBLChoice];
     // Add random begin and end layer moves
     let s = scramble[0];
     let e = scramble[scramble.length - 1];
@@ -1163,36 +1064,36 @@ function generateScramble() {
 }
 
 function showAll() {
-    for (let pbl of possiblePBL) {
-        showPBL(pblname(pbl));
+    for (let OBL of possibleOBL) {
+        showOBL(OBLname(OBL));
     }
 }
 
-function hidePBL(text) {
+function hideOBL(text) {
     document.getElementById(text).classList.add("hidden");
 }
 
-function showPBL(text) {
+function showOBL(text) {
     document.getElementById(text).classList.remove("hidden");
 }
 
-function selectPBL(pbl) {
-    document.getElementById(pbl).classList.add("checked");
-    if (!selectedPBL.includes(pbl)) {
-        selectedPBL.push(pbl);
+function selectOBL(OBL) {
+    document.getElementById(OBL).classList.add("checked");
+    if (!selectedOBL.includes(OBL)) {
+        selectedOBL.push(OBL);
     }
-    if (eachCase > 0 && !remainingPBL.includes(pbl)) {
-        remainingPBL = remainingPBL.concat(Array(eachCase).fill(pbl));
+    if (eachCase > 0 && !remainingOBL.includes(OBL)) {
+        remainingOBL = remainingOBL.concat(Array(eachCase).fill(OBL));
     }
 }
 
-function deselectPBL(pbl) {
-    document.getElementById(pbl).classList.remove("checked");
-    if (selectedPBL.includes(pbl)) {
-        selectedPBL = selectedPBL.filter((a) => a != pbl);
+function deselectOBL(OBL) {
+    document.getElementById(OBL).classList.remove("checked");
+    if (selectedOBL.includes(OBL)) {
+        selectedOBL = selectedOBL.filter((a) => a != OBL);
     }
-    if (eachCase && remainingPBL.includes(pbl)) {
-        remainingPBL = remainingPBL.filter((a) => a != pbl);
+    if (eachCase && remainingOBL.includes(OBL)) {
+        remainingOBL = remainingOBL.filter((a) => a != OBL);
     }
 }
 
@@ -1319,23 +1220,23 @@ function selectList(listName, setSelection) {
         list = userLists[listName];
     }
     if (setSelection) {
-        for (let [pbl, inlist] of Object.entries(list)) {
+        for (let [OBL, inlist] of Object.entries(list)) {
             if (inlist) {
-                showPBL(pbl);
-                selectPBL(pbl);
+                showOBL(OBL);
+                selectOBL(OBL);
             } else {
-                hidePBL(pbl);
-                deselectPBL(pbl);
+                hideOBL(OBL);
+                deselectOBL(OBL);
             }
         }
 
-        saveSelectedPBL();
+        saveSelectedOBL();
     } else {
-        for (let [pbl, inlist] of Object.entries(list)) {
+        for (let [OBL, inlist] of Object.entries(list)) {
             if (inlist) {
-                showPBL(pbl);
+                showOBL(OBL);
             } else {
-                hidePBL(pbl);
+                hideOBL(OBL);
             }
         }
     }
@@ -1374,7 +1275,7 @@ function openScramblePopup(scramble) {
     displayCube.draw(cubeCenter, cubeScale);
 
     displayScramEl.textContent = scramble;
-    displayPBLname.textContent = displayCube.pblCase();
+    displayOBLname.textContent = displayCube.OBLCase();
 }
 
 function openListPopup() {
@@ -1399,7 +1300,7 @@ function canInteractTimer() {
 
 function enableGoEachCase(count) {
     eachCase = count;
-    remainingPBL = selectedPBL.flatMap((el) => Array(eachCase).fill(el));
+    remainingOBL = selectedOBL.flatMap((el) => Array(eachCase).fill(el));
 }
 
 init();
@@ -1407,50 +1308,50 @@ init();
 filterInputEl.addEventListener("input", () => {
     filterInputEl.value = filterInputEl.value.replace(/[^a-zA-Z/\- ]+/g, "");
     setHighlightedList(null);
-    for (pbl of possiblePBL) {
-        const n = pblname(pbl);
-        if (passesFilter(pbl, filterInputEl.value)) {
-            showPBL(n);
+    for (OBL of possibleOBL) {
+        const n = OBLname(OBL);
+        if (passesFilter(OBL, filterInputEl.value)) {
+            showOBL(n);
         } else {
-            hidePBL(n);
+            hideOBL(n);
         }
     }
 });
 
 selectAllEl.addEventListener("click", () => {
     if (usingTimer()) return;
-    for (let pbl of possiblePBL) {
-        selectPBL(pblname(pbl));
+    for (let OBL of possibleOBL) {
+        selectOBL(OBLname(OBL));
     }
-    saveSelectedPBL();
+    saveSelectedOBL();
 });
 
 deselectAllEl.addEventListener("click", () => {
     if (usingTimer()) return;
-    for (let pbl of possiblePBL) {
-        deselectPBL(pblname(pbl));
+    for (let OBL of possibleOBL) {
+        deselectOBL(OBLname(OBL));
     }
-    saveSelectedPBL();
+    saveSelectedOBL();
 });
 
 selectTheseEl.addEventListener("click", () => {
     if (usingTimer()) return;
-    for (i of pblListEl.children) {
+    for (i of OBLListEl.children) {
         if (!i.classList.contains("hidden")) {
-            selectPBL(i.id);
+            selectOBL(i.id);
         }
     }
-    saveSelectedPBL();
+    saveSelectedOBL();
 });
 
 deselectTheseEl.addEventListener("click", () => {
     if (usingTimer()) return;
-    for (i of pblListEl.children) {
+    for (i of OBLListEl.children) {
         if (!i.classList.contains("hidden")) {
-            deselectPBL(i.id);
+            deselectOBL(i.id);
         }
     }
-    saveSelectedPBL();
+    saveSelectedOBL();
 });
 
 showAllEl.addEventListener("click", () => {
@@ -1460,12 +1361,12 @@ showAllEl.addEventListener("click", () => {
 
 showSelectionEl.addEventListener("click", () => {
     if (usingTimer()) return;
-    for (pbl of possiblePBL) {
-        const n = pblname(pbl);
-        if (selectedPBL.includes(n)) {
-            showPBL(n);
+    for (OBL of possibleOBL) {
+        const n = OBLname(OBL);
+        if (selectedOBL.includes(n)) {
+            showOBL(n);
         } else {
-            hidePBL(n);
+            hideOBL(n);
         }
     }
 });
@@ -1498,8 +1399,8 @@ openListsEl.addEventListener("click", () => {
 
 newListEl.addEventListener("click", () => {
     if (usingTimer()) return;
-    if (selectedPBL.length == 0) {
-        alert("Please select PBLs to create a list!");
+    if (selectedOBL.length == 0) {
+        alert("Please select OBLs to create a list!");
         return;
     }
     let newListName = prompt("Name of your list:");
@@ -1526,9 +1427,9 @@ newListEl.addEventListener("click", () => {
         return;
     }
     let newList = {};
-    for (pbl of possiblePBL) {
-        const n = pblname(pbl);
-        if (selectedPBL.includes(n)) {
+    for (OBL of possibleOBL) {
+        const n = OBLname(OBL);
+        if (selectedOBL.includes(n)) {
             newList[n] = 1;
         } else {
             newList[n] = 0;
@@ -1616,11 +1517,11 @@ timerBoxEl.addEventListener("touchend", (e) => {
     timerEndTouch(true);
 });
 
-currentScrambleEl.addEventListener("click", () => {
-    if (usingTimer()) return;
-    if (isPopupOpen || !hasActiveScramble) return;
-    openScramblePopup(currentScrambleEl.innerText);
-});
+// currentScrambleEl.addEventListener("click", () => {
+//     if (usingTimer()) return;
+//     if (isPopupOpen || !hasActiveScramble) return;
+//     openScramblePopup(currentScrambleEl.innerText);
+// });
 
 previousScrambleEl.addEventListener("click", () => {
     if (usingTimer()) return;
@@ -1648,7 +1549,7 @@ downloadEl.addEventListener("click", () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "PBLTrainerData.json";
+    a.download = "OBLTrainerData.json";
     a.click();
     URL.revokeObjectURL(url);
 });
@@ -1665,7 +1566,7 @@ fileEl.addEventListener("change", (e) => {
     reader.onload = () => {
         try {
             jsonData = JSON.parse(reader.result);
-            localStorage.setItem("selectedPBL", jsonData["selectedPBL"]);
+            localStorage.setItem("selectedOBL", jsonData["selectedOBL"]);
             localStorage.setItem("userLists", jsonData["userLists"]);
             getLocalStorageData();
         } catch (e) {
