@@ -1043,8 +1043,8 @@ function isObl(obl, filter) {
 
 function passesFilter(obl, filter) {
     let g = obl[0];
-    let u = obl[1];
-    let d = obl[2];
+    let u = obl[1].toLowerCase();
+    let d = obl[2].toLowerCase();
     filter = filter.replace("/", " ").toLowerCase();
     if (filter.split(" ")[0] == "good") {
         if (g != "good") return false;
