@@ -1110,6 +1110,7 @@ function generateScramble() {
 
     OBLChoice += "-+"[randInt(0, 1)];
 
+    console.log(OBLChoice)
     scramble = generators[OBLChoice];
     // Add random begin and end layer moves
     let s = scramble[0];
