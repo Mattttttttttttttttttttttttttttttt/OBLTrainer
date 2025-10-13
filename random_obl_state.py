@@ -1,46 +1,47 @@
-"""generates random obl states for an obl and then inverts solutions"""
+"""generates random obl states for an obl and then inverts solutions;
+helper for generating scrambles for the trainer"""
 import random
 import pyperclip
 
 OBL = {"1c": "bwwwwwww",
-       "cadj": "bwbwwwww",
-       "copp": "bwwwbwww",
-       "3c": "bwbwbwww",
-       "4e": "bwbwbwbw",
-       "3e": "wbwbwbww",
-       "line": "wbwwwbww",
-       "L": "wbwbwwww",
-       "1e": "wbwwwwww",
+        "cadj": "bwbwwwww",
+        "copp": "bwwwbwww",
+        "3c": "bwbwbwww",
+        "4e": "bwbwbwbw",
+        "3e": "wbwbwbww",
+        "line": "wbwwwbww",
+        "L": "wbwbwwww",
+        "1e": "wbwwwwww",
 
-       "left pair": "wbbwwwww",
-       "right pair": "bbwwwwww",
-       "left arrow": "bwwwwwbw",
-       "right arrow": "bwwbwwww",
-       "gem": "bbbwwwww",
-       "left knight": "wwwbwbbw",
-       "right knight": "bbwbwwww",
-       "left axe": "wwwbwwbb",
-       "right axe": "bwwbwwwb",
-       "squid": "bwwbwbww",
-       "left thumb": "wwwbbbwb",
-       "right thumb": "wbbbwwwb",
-       "left bunny": "wwbbwbwb",
-       "right bunny": "wbwbbwwb",
+        "left pair": "wbbwwwww",
+        "right pair": "bbwwwwww",
+        "left arrow": "bwwwwbww",
+        "right arrow": "bwwbwwww",
+        "gem": "wbbbwwww",
+        "left knight": "wwwbwbbw",
+        "right knight": "bbwbwwww",
+        "left axe": "wwwbwwbb",
+        "right axe": "bwwbwwwb",
+        "squid": "bwwbwbww",
+        "left thumb": "wwwbbbwb",
+        "right thumb": "wbbbwwwb",
+        "left bunny": "wwbbwbwb",
+        "right bunny": "wbwbbwwb",
 
-       "shell": "bbbwwwww",
-       "left bird": "bwwwwbbw",
-       "right bird": "bwbbwwww",
-       "hazard": "bwwbwwbw",
-       "left kite": "bbbbwwww",
-       "right kite": "wwwbbbbw",
-       "left cut": "bwbwwbwb",
-       "right cut": "bwbbwbww",
-       "T": "bbbwwbww",
-       "left N": "wbbwwbbw",
-       "right N": "wwbbwwbb",
-       "tie": "wbbbwwbw",
-       "lefty yoshi": "bbwwbwww",
-       "righty yoshi": "wwbwwbbw"}
+        "shell": "bbbwwwww",
+        "left bird": "bwwwwbbw",
+        "right bird": "bwbbwwww",
+        "hazard": "bwwbwwbw",
+        "left kite": "bbbbwwww",
+        "right kite": "wwwbbbbw",
+        "left cut": "bwbwwbwb",
+        "right cut": "bwbbwbww",
+        "T": "bbbwwbww",
+        "left N": "wbbwwbbw",
+        "right N": "wwbbwwbb",
+        "tie": "wbbbwwbw",
+        "lefty yoshi": "bbwwbwww",
+        "righty yoshi": "wwbwwbbw"}
 
 def layer_flip(state: str) -> str:
     """flips "w" to "b" and vice versa in the given state
@@ -145,6 +146,20 @@ def inverse_solution(states: list) -> int:
             return_val += 1
             continue
         sol = sol.replace(" ", "").split("/") # e.g. ["(1,0)", "(0,-1)"]
+
+        # check if its out of cs
+        out_of_cs = False
+        for move in sol[1:-1]: # ignore first and last move since they are "out of cs"
+            u = int(move.split(",")[0][1:]) # remove parentheses
+            d = int(move.split(",")[1][:-1])
+            if u % 3 != d % 3:
+                out_of_cs = True
+                break
+        if out_of_cs:
+            print("out of cs, skipped. next command copied.")
+            return_val += 1
+            continue
+
         sol.reverse()
         inverted_sol = []
         for j, move in enumerate(sol):
@@ -153,12 +168,17 @@ def inverse_solution(states: list) -> int:
             top = -1*int(top)
             bottom = -1*int(bottom)
             inverted_sol.append(f"{top},{bottom}")
+        # convert to A and a
+        inverted_sol[0] = "A" if int(inverted_sol[0].split(",")[0]) % 3 != 0 else "a"
+        inverted_sol[-1] = "A" if int(inverted_sol[-1].split(",")[0]) % 3 != 0 else "a"
         inverse_sols.append("/".join(inverted_sol))
     return return_val
 
 inverse_sols = []
-obl_case = input("obl case (e.g. left knight/gem): ").split("/")
-iterations: int = int(input("number of random states to generate: "))
-while iterations != 0:
-    iterations = inverse_solution(generate(iterations))
+for i in range(int(input("run how many times: "))):
+    obl_case = input("obl case (e.g. left knight/gem): ").split("/")
+    iterations: int = int(input("number of random states to generate: "))
+    while iterations != 0:
+        iterations = inverse_solution(generate(iterations))
 print("[\"" + "\",\n\"".join(inverse_sols) + "\"]") # formatted for pasting
+pyperclip.copy("[\"" + "\",\n\"".join(inverse_sols) + "\"]")
