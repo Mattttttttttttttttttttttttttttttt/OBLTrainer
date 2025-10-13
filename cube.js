@@ -988,7 +988,7 @@ async function init() {
     let buttons = "";
     for (obl of possibleOBL) {
         buttons += `
-        <div class="case" id="${oblName(obl)}">${oblName(obl)}</div>`;
+        <div class="case" id="${OBLname(obl)}">${OBLname(obl)}</div>`;
     }
     OBLListEl.innerHTML += buttons;
 
