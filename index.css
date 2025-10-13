@@ -85,7 +85,7 @@ input[type="checkbox"] {
 .obl-grid {
     display: grid;
     flex: 1;
-    grid-template-columns: repeat(2, minmax(80px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     align-content: top;
     gap: 0.5rem;
 
