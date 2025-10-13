@@ -1389,7 +1389,7 @@ function enableGoEachCase(count) {
 init();
 
 filterInputEl.addEventListener("input", () => {
-    filterInputEl.value = filterInputEl.value.replace(/[^a-zA-Z/\- ]+/g, "");
+    filterInputEl.value = filterInputEl.value.replace(/[^a-zA-Z1-4/\- ]+/g, "");
     setHighlightedList(null);
     for (obl of possibleOBL) {
         const n = OBLname(obl);
