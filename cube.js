@@ -1058,8 +1058,8 @@ function passesFilter(obl, filter) {
             }
             else {
                 b = filter.split(" ")[2]
-                return isObl(u, a) && isObl(d, b) || 
-                        isObl(u, b) && isObl(d, a);
+                return (u == a && isObl(d, b)) || 
+                        (u == b && isObl(d, a));
             }
         }
     }
@@ -1075,8 +1075,8 @@ function passesFilter(obl, filter) {
             }
             else {
                 b = filter.split(" ")[2]
-                return isObl(u, a) && isObl(d, b) || 
-                        isObl(u, b) && isObl(d, a);
+                return (u == a && isObl(d, b)) || 
+                        (u == b && isObl(d, a));
             }
         }
     };
