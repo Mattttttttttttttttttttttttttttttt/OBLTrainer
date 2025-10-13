@@ -901,10 +901,6 @@ function OBLname(obl) {
     return obl[0] ? `${obl[0]} ${obl[1]}/${obl[2]}` : `${obl[1]}/${obl[2]}`;
 }
 
-function OBLname_space(obl) {
-    return obl[0] ? `${obl[0]} ${obl[1]} / ${obl[2]}` : `${obl[1]} / ${obl[2]}`;
-}
-
 function listLength(list) {
     let l = 0;
     for (let i of Object.values(list)) {
@@ -983,7 +979,7 @@ async function init() {
     let buttons = "";
     for (obl of possibleOBL) {
         buttons += `
-        <div class="case" id="${OBLname(obl)}">${OBLname_space(obl)}</div>`;
+        <div class="case" id="${OBLname(obl)}">${OBLname(obl)}</div>`;
     }
     OBLListEl.innerHTML += buttons;
 
