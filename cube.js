@@ -903,7 +903,7 @@ function usingTimer() {
 }
 
 function OBLname(obl) {
-    return obl ? `${OBL[0]} ${OBL[1]}/${OBL[2]}` : `${OBL[1]}/${OBL[2]}`;
+    return obl[0] ? `${obl[0]} ${obl[1]}/${obl[2]}` : `${obl[1]}/${obl[2]}`;
 }
 
 function listLength(list) {
