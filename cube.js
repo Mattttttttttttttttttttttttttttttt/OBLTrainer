@@ -1108,8 +1108,6 @@ function generateScramble() {
         OBLChoice = selectedOBL[randInt(0, selectedOBL.length - 1)];
     }
 
-    OBLChoice += "-+"[randInt(0, 1)];
-
     console.log(OBLChoice)
     scramble = generators[OBLChoice][randInt(0, generators[OBLChoice].length)];
     // Add random begin and end layer moves
