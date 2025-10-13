@@ -264,7 +264,7 @@ function drawEdge(
     isTopLayer,
     scale = 100,
     sideBlank = false,
-    toOBLank = false
+    topBlank = false
 ) {
     let padding = scale * PADDING;
     let innerLength = scale - padding;
@@ -297,7 +297,7 @@ function drawEdge(
     let layerColor, sideColor;
     if (sideBlank) sideColor = BLANKCOL;
     else sideColor = sideColors[sideCol];
-    if (toOBLank) layerColor = BLANKCOL;
+    if (topBlank) layerColor = BLANKCOL;
     else layerColor = isTopColor ? TOPCOL : BOTCOL;
     // Top part
     drawPolygon([center, il, ir], layerColor);
@@ -312,7 +312,7 @@ function drawCorner(
     isTopLayer,
     scale = 100,
     sideBlank = false,
-    toOBLank = false
+    topBlank = false
 ) {
     let padding = scale * PADDING;
     let innerLength = scale - padding;
@@ -354,7 +354,7 @@ function drawCorner(
 
     // draw
     let layerColor, sideColor0, sideColor1;
-    if (toOBLank) layerColor = BLANKCOL;
+    if (topBlank) layerColor = BLANKCOL;
     else layerColor = isTopColor ? TOPCOL : BOTCOL;
     if (sideBlank) {
         sideColor0 = sideColor1 = BLANKCOL;
@@ -398,10 +398,10 @@ function drawCursor(center, step, scale = 100) {
 // black top
 const solved = "bbbbbbbbwwwwwwww";
 
-// "upright"
-const OBL = {
-    "1c": ""
-};
+// // "upright"
+// const OBL = {
+//     "1c": ""
+// };
 
 let KARN = {
     U: Move.Move(3, 0),
@@ -428,12 +428,12 @@ let KARN = {
 
 const kmoves = Object.entries(KARN);
 
-function testOBL(layer) {
-    for (let [name, value] of Object.entries(OBL)) {
-        if (layer == value) return name;
-    }
-    return 0;
-}
+// function testOBL(layer) {
+//     for (let [name, value] of Object.entries(OBL)) {
+//         if (layer == value) return name;
+//     }
+//     return 0;
+// }
 
 function rotateLayer(layer, full) {
     const n = 6 + full;
@@ -742,7 +742,82 @@ class Cube {
 // Variables
 const evenPLL = Object.keys(TPLL).slice(0, 22);
 const oddPLL = Object.keys(TPLL).slice(22);
-let possibleOBL = [];
+let possibleOBL = [
+    ["", "1c", "1c"],
+    ["", "cadj", "cadj"],
+    ["", "cadj", "copp"],
+    ["", "copp", "copp"],
+    ["", "3c", "3c"],
+    ["", "4e", "4e"],
+    ["", "3e", "3e"],
+    ["", "line", "line"],
+    ["", "L", "line"],
+    ["", "L", "L"],
+    ["", "1e", "1e"],
+    ["good", "pair", "pair"],
+    ["bad", "pair", "pair"],
+    ["good", "arrow", "pair"],
+    ["bad", "arrow", "pair"],
+    ["good", "arrow", "arrow"],
+    ["bad", "arrow", "arrow"],
+    ["", "gem", "gem"],
+    ["", "gem", "knight"],
+    ["", "gem", "axe"],
+    ["", "gem", "squid"],
+    ["good", "knight", "knight"],
+    ["bad", "knight", "knight"],
+    ["good", "knight", "axe"],
+    ["bad", "knight", "axe"],
+    ["good", "axe", "axe"],
+    ["bad", "axe", "axe"],
+    ["", "squid", "gem"],
+    ["", "squid", "knight"],
+    ["", "squid", "axe"],
+    ["", "squid", "squid"],
+    ["good", "thumb", "thumb"],
+    ["bad", "thumb", "thumb"],
+    ["good", "thumb", "bunny"],
+    ["bad", "thumb", "bunny"],
+    ["good", "bunny", "bunny"],
+    ["bad", "bunny", "bunny"],
+    ["", "shell", "shell"],
+    ["", "shell", "bird"],
+    ["", "shell", "hazard"],
+    ["", "yoshi", "shell"],
+    ["good", "bird", "bird"],
+    ["bad", "bird", "bird"],
+    ["", "bird", "hazard"],
+    ["", "hazard", "hazard"],
+    ["good", "yoshi", "bird"],
+    ["bad", "yoshi", "bird"],
+    ["", "yoshi", "hazard"],
+    ["good", "yoshi", "yoshi"],
+    ["bad", "yoshi", "yoshi"],
+    ["good", "kite", "kite"],
+    ["bad", "kite", "kite"],
+    ["good", "kite", "cut"],
+    ["bad", "kite", "cut"],
+    ["", "kite", "T"],
+    ["good", "kite", "N"],
+    ["bad", "kite", "N"],
+    ["", "kite", "tie"],
+    ["", "cut", "T"],
+    ["good", "cut", "N"],
+    ["bad", "cut", "N"],
+    ["", "cut", "tie"],
+    ["good", "cut", "cut"],
+    ["bad", "cut", "cut"],
+    ["good", "T", "T"],
+    ["bad", "T", "T"],
+    ["", "T", "N"],
+    ["good", "T", "tie"],
+    ["bad", "T", "tie"],
+    ["good", "N", "N"],
+    ["bad", "N", "N"],
+    ["", "tie", "N"],
+    ["good", "tie", "tie"],
+    ["bad", "tie", "tie"]
+];
 let selectedOBL = [];
 let scrambleList = [];
 
@@ -831,8 +906,8 @@ function usingTimer() {
     return isRunning || pressStartTime != null;
 }
 
-function OBLname(OBL) {
-    return `${OBL[0]}/${OBL[1]}`;
+function OBLname(obl) {
+    return obl ? `${OBL[0]} ${OBL[1]}/${OBL[2]}` : `${OBL[1]}/${OBL[2]}`;
 }
 
 function listLength(list) {
@@ -910,21 +985,10 @@ function addListItemEvent(item) {
 }
 
 async function init() {
-    // Compute possible OBLs
-    for (let t of evenPLL) {
-        for (let b of evenPLL) possibleOBL.push([t, b]);
-    }
-    for (let t of oddPLL) {
-        for (let b of oddPLL) {
-            possibleOBL.push([t, b]);
-        }
-    }
-
-    possibleOBL.splice(0, 1);
     let buttons = "";
-    for ([t, b] of possibleOBL) {
+    for (obl of possibleOBL) {
         buttons += `
-        <div class="case" id="${t}/${b}">${t} / ${b}</div>`;
+        <div class="case" id="${oblName(obl)}">${oblName(obl)}</div>`;
     }
     OBLListEl.innerHTML += buttons;
 
@@ -975,32 +1039,60 @@ async function init() {
         .catch((error) => console.error("Failed to fetch data:", error));
 }
 
-function isPll(pll, filter) {
-    special = ["opp", "adj", "pn", "pj"];
-    if (special.includes(pll)) {
-        return filter == pll;
-    }
-    return pll.startsWith(filter);
+function isObl(obl, filter) {
+    return obl.startsWith(filter);
 }
 
-function passesFilter(OBL, filter) {
-    let u = OBL[0].toLowerCase();
-    let d = OBL[1].toLowerCase();
+function passesFilter(obl, filter) {
+    let g = obl[0];
+    let u = obl[1];
+    let d = obl[2];
     filter = filter.replace("/", " ").toLowerCase();
-    if (filter.includes(" ")) {
-        arr = filter.match(/[^ ]+/g);
-        if (arr != null) {
-            arr = arr.slice(0, 2);
-            [a, b] = arr.slice(0, 2);
-            if (a && b) {
-                return (
-                    (isPll(u, a) && isPll(d, b)) || (isPll(u, b) && isPll(d, a))
-                );
+    if (filter.split(" ")[0] == "good") {
+        if (g != "good") return false;
+        // if user only typed "good":
+        if (filter.split(" ").length == 1 || filter.split(" ")[1] == "") return true;
+        else {
+            a = filter.split(" ")[1]
+            // only top case:
+            if (filter.split(" ").length == 2) {
+                return isObl(u, a) || isObl(d, a);
             }
-            filter = a; //  if we type 'Pl/' take 'Pl' as the filter
+            else {
+                b = filter.split(" ")[2]
+                return isObl(u, a) && isObl(d, b) || 
+                        isObl(u, b) && isObl(d, a);
+            }
         }
     }
-    return isPll(u, filter) || isPll(d, filter);
+    if (filter.split(" ")[0] == "bad") {
+        if (g != "bad") return false;
+        // if user only typed "bad":
+        if (filter.split(" ").length == 1 || filter.split(" ")[1] == "") return true;
+        else {
+            a = filter.split(" ")[1]
+            // only top case:
+            if (filter.split(" ").length == 2) {
+                return isObl(u, a) || isObl(d, a);
+            }
+            else {
+                b = filter.split(" ")[2]
+                return isObl(u, a) && isObl(d, b) || 
+                        isObl(u, b) && isObl(d, a);
+            }
+        }
+    };
+    // from here, filter's g = ""
+    a = filter.split(" ")[0]
+    // only top case:
+    if (filter.split(" ").length == 1) {
+        return isObl(u, a) || isObl(d, a);
+    }
+    else {
+        b = filter.split(" ")[1]
+        return isObl(u, a) && isObl(d, b) || 
+                isObl(u, b) && isObl(d, a);
+    }
 }
 
 function generateScramble() {
@@ -1077,23 +1169,23 @@ function showOBL(text) {
     document.getElementById(text).classList.remove("hidden");
 }
 
-function selectOBL(OBL) {
-    document.getElementById(OBL).classList.add("checked");
-    if (!selectedOBL.includes(OBL)) {
-        selectedOBL.push(OBL);
+function selectOBL(obl) {
+    document.getElementById(obl).classList.add("checked");
+    if (!selectedOBL.includes(obl)) {
+        selectedOBL.push(obl);
     }
-    if (eachCase > 0 && !remainingOBL.includes(OBL)) {
-        remainingOBL = remainingOBL.concat(Array(eachCase).fill(OBL));
+    if (eachCase > 0 && !remainingOBL.includes(obl)) {
+        remainingOBL = remainingOBL.concat(Array(eachCase).fill(obl));
     }
 }
 
-function deselectOBL(OBL) {
-    document.getElementById(OBL).classList.remove("checked");
-    if (selectedOBL.includes(OBL)) {
-        selectedOBL = selectedOBL.filter((a) => a != OBL);
+function deselectOBL(obl) {
+    document.getElementById(obl).classList.remove("checked");
+    if (selectedOBL.includes(obl)) {
+        selectedOBL = selectedOBL.filter((a) => a != obl);
     }
     if (eachCase && remainingOBL.includes(OBL)) {
-        remainingOBL = remainingOBL.filter((a) => a != OBL);
+        remainingOBL = remainingOBL.filter((a) => a != obl);
     }
 }
 
@@ -1220,13 +1312,13 @@ function selectList(listName, setSelection) {
         list = userLists[listName];
     }
     if (setSelection) {
-        for (let [OBL, inlist] of Object.entries(list)) {
+        for (let [obl, inlist] of Object.entries(list)) {
             if (inlist) {
-                showOBL(OBL);
-                selectOBL(OBL);
+                showOBL(obl);
+                selectOBL(obl);
             } else {
-                hideOBL(OBL);
-                deselectOBL(OBL);
+                hideOBL(obl);
+                deselectOBL(obl);
             }
         }
 
@@ -1256,27 +1348,27 @@ function validName(n) {
     return true;
 }
 
-function openScramblePopup(scramble) {
-    if (usingTimer()) return;
-    isPopupOpen = true;
-    scramblePopupEl.classList.add("open");
+// function openScramblePopup(scramble) {
+//     if (usingTimer()) return;
+//     isPopupOpen = true;
+//     scramblePopupEl.classList.add("open");
 
-    // Change canvas size
-    const w = canvasWrapperEl.offsetWidth;
-    const h = canvasWrapperEl.offsetHeight;
+//     // Change canvas size
+//     const w = canvasWrapperEl.offsetWidth;
+//     const h = canvasWrapperEl.offsetHeight;
 
-    canvas.width = w;
-    canvas.height = h;
-    cubeCenter = new Point(parseInt(w / 2), parseInt(h / 2));
-    cubeScale = parseInt(w / 7);
+//     canvas.width = w;
+//     canvas.height = h;
+//     cubeCenter = new Point(parseInt(w / 2), parseInt(h / 2));
+//     cubeScale = parseInt(w / 7);
 
-    let displayCube = new Cube(solved);
-    displayCube.applySequence(new Sequence(scramble));
-    displayCube.draw(cubeCenter, cubeScale);
+//     let displayCube = new Cube(solved);
+//     displayCube.applySequence(new Sequence(scramble));
+//     displayCube.draw(cubeCenter, cubeScale);
 
-    displayScramEl.textContent = scramble;
-    displayOBLname.textContent = displayCube.OBLCase();
-}
+//     displayScramEl.textContent = scramble;
+//     displayOBLname.textContent = displayCube.OBLCase();
+// }
 
 function openListPopup() {
     if (usingTimer()) return;
@@ -1308,9 +1400,9 @@ init();
 filterInputEl.addEventListener("input", () => {
     filterInputEl.value = filterInputEl.value.replace(/[^a-zA-Z/\- ]+/g, "");
     setHighlightedList(null);
-    for (OBL of possibleOBL) {
-        const n = OBLname(OBL);
-        if (passesFilter(OBL, filterInputEl.value)) {
+    for (obl of possibleOBL) {
+        const n = OBLname(obl);
+        if (passesFilter(obl, filterInputEl.value)) {
             showOBL(n);
         } else {
             hideOBL(n);
@@ -1320,16 +1412,16 @@ filterInputEl.addEventListener("input", () => {
 
 selectAllEl.addEventListener("click", () => {
     if (usingTimer()) return;
-    for (let OBL of possibleOBL) {
-        selectOBL(OBLname(OBL));
+    for (let obl of possibleOBL) {
+        selectOBL(OBLname(obl));
     }
     saveSelectedOBL();
 });
 
 deselectAllEl.addEventListener("click", () => {
     if (usingTimer()) return;
-    for (let OBL of possibleOBL) {
-        deselectOBL(OBLname(OBL));
+    for (let obl of possibleOBL) {
+        deselectOBL(OBLname(obl));
     }
     saveSelectedOBL();
 });
@@ -1361,8 +1453,8 @@ showAllEl.addEventListener("click", () => {
 
 showSelectionEl.addEventListener("click", () => {
     if (usingTimer()) return;
-    for (OBL of possibleOBL) {
-        const n = OBLname(OBL);
+    for (obl of possibleOBL) {
+        const n = OBLname(obl);
         if (selectedOBL.includes(n)) {
             showOBL(n);
         } else {
@@ -1427,8 +1519,8 @@ newListEl.addEventListener("click", () => {
         return;
     }
     let newList = {};
-    for (OBL of possibleOBL) {
-        const n = OBLname(OBL);
+    for (obl of possibleOBL) {
+        const n = OBLname(obl);
         if (selectedOBL.includes(n)) {
             newList[n] = 1;
         } else {
@@ -1523,11 +1615,11 @@ timerBoxEl.addEventListener("touchend", (e) => {
 //     openScramblePopup(currentScrambleEl.innerText);
 // });
 
-previousScrambleEl.addEventListener("click", () => {
-    if (usingTimer()) return;
-    if (isPopupOpen || !hasPreviousScramble) return;
-    openScramblePopup(previousScramble);
-});
+// previousScrambleEl.addEventListener("click", () => {
+//     if (usingTimer()) return;
+//     if (isPopupOpen || !hasPreviousScramble) return;
+//     openScramblePopup(previousScramble);
+// });
 
 toggleUiEl.addEventListener("click", () => {
     if (usingTimer()) return;
