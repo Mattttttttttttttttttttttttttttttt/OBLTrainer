@@ -1042,6 +1042,7 @@ function isObl(obl, filter) {
 }
 
 function passesFilter(obl, filter) {
+    // obl is the standardized string
     let g = obl[0];
     let u = obl[1].toLowerCase();
     let d = obl[2].toLowerCase();
@@ -1059,7 +1060,7 @@ function passesFilter(obl, filter) {
             else {
                 b = filter.split(" ")[2]
                 return (u == a && isObl(d, b)) || 
-                        (u == b && isObl(d, a));
+                        (d == a && isObl(u, b));
             }
         }
     }
@@ -1076,20 +1077,20 @@ function passesFilter(obl, filter) {
             else {
                 b = filter.split(" ")[2]
                 return (u == a && isObl(d, b)) || 
-                        (u == b && isObl(d, a));
+                        (d == a && isObl(u, b));
             }
         }
     };
     // from here, filter's g = ""
     a = filter.split(" ")[0]
     // only top case:
-    if (filter.split(" ").length == 1) {
+    if (filter.split(" ").length == 1 || filter.split(" ")[1] == "") {
         return isObl(u, a) || isObl(d, a);
     }
     else {
         b = filter.split(" ")[1]
         return (u == a && isObl(d, b)) || 
-                (u == b && isObl(d, a));
+                (d == a && isObl(u, b));
     }
 }
 
