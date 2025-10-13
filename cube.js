@@ -1028,6 +1028,13 @@ async function init() {
             addDefaultLists();
         })
         .catch((error) => console.error("Failed to fetch data:", error));
+
+    // deselect all and show all
+    showAll();
+    for (let obl of possibleOBL) {
+        deselectOBL(OBLname(obl));
+    }
+    saveSelectedOBL();
 }
 
 function isObl(obl, filter) {
@@ -1108,7 +1115,6 @@ function generateScramble() {
         OBLChoice = selectedOBL[randInt(0, selectedOBL.length - 1)];
     }
 
-    console.log(OBLChoice)
     scramble = generators[OBLChoice][randInt(0, generators[OBLChoice].length)];
     // Add random begin and end layer moves
     let s = scramble[0];
