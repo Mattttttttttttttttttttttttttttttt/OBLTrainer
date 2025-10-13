@@ -82,7 +82,7 @@ input[type="checkbox"] {
 }
 
 /* Grille de cases */
-.pbl-grid {
+.obl-grid {
     display: grid;
     flex: 1;
     grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
@@ -97,7 +97,7 @@ input[type="checkbox"] {
     -ms-overflow-style: none; /* IE 10+ */
 }
 
-.pbl-grid::-webkit-scrollbar {
+.obl-grid::-webkit-scrollbar {
     display: none; /* Chrome, Safari */
 }
 
@@ -314,7 +314,7 @@ button:hover {
     background-color: rgb(255, 255, 255, 0.13);
 }
 
-.pblname {
+.oblname {
     flex: 0 1 auto;
     font-size: 40px;
     width: 100%;

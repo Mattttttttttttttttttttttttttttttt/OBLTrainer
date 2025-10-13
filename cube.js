@@ -933,11 +933,11 @@ function getLocalStorageData() {
         }
         generateScramble();
         if (selectedOBL.length != 0) {
-            for (let OBL of possibleOBL) {
-                hideOBL(OBLname(OBL));
+            for (let obl of possibleOBL) {
+                hideOBL(OBLname(obl));
             }
-            for (let OBL of selectedOBL) {
-                showOBL(OBL);
+            for (let obl of selectedOBL) {
+                showOBL(obl);
             }
         }
     }
