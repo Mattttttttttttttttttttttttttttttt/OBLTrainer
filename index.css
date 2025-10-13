@@ -60,7 +60,7 @@ input[type="checkbox"] {
 
 /* Colonne gauche */
 .sidebar {
-    width: 23%;
+    width: 27%;
     border-right: 2px solid #333;
     padding: 0.75rem;
     padding-bottom: 0;
