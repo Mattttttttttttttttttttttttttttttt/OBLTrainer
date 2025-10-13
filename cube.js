@@ -740,8 +740,6 @@ class Cube {
 }
 
 // Variables
-const evenPLL = Object.keys(TPLL).slice(0, 22);
-const oddPLL = Object.keys(TPLL).slice(22);
 let possibleOBL = [
     ["", "1c", "1c"],
     ["", "cadj", "cadj"],
