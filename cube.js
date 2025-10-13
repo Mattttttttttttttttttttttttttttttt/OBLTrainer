@@ -1043,37 +1043,45 @@ function passesFilter(obl, filter) {
     let u = obl[1].toLowerCase();
     let d = obl[2].toLowerCase();
     filter = filter.replace("/", " ").toLowerCase();
-    if (filter.split(" ")[0] == "good") {
-        if (g != "good") return false;
-        // if user only typed "good":
-        if (filter.split(" ").length == 1 || filter.split(" ")[1] == "") return true;
+    let result_from_good_bad;
+    let result_from_non_good_bad;
+    if ("good".startsWith(filter.split(" ")[0])) {
+        if (g != "good") result_from_good_bad = false;
         else {
-            a = filter.split(" ")[1]
-            // only top case:
-            if (filter.split(" ").length == 2) {
-                return u.startsWith(a) || d.startsWith(a);
-            }
+            // if user only typed "good":
+            if (filter.split(" ").length == 1 || filter.split(" ")[1] == "") 
+                result_from_good_bad = true;
             else {
-                b = filter.split(" ")[2]
-                return (u == a && d.startsWith(b)) || 
-                        (d == a && u.startsWith(b));
+                a = filter.split(" ")[1]
+                // only top case:
+                if (filter.split(" ").length == 2) {
+                    result_from_good_bad = u.startsWith(a) || d.startsWith(a);
+                }
+                else {
+                    b = filter.split(" ")[2]
+                    result_from_good_bad = (u == a && d.startsWith(b)) || 
+                            (d == a && u.startsWith(b));
+                }
             }
         }
     }
-    if (filter.split(" ")[0] == "bad") {
-        if (g != "bad") return false;
-        // if user only typed "bad":
-        if (filter.split(" ").length == 1 || filter.split(" ")[1] == "") return true;
+    if ("bad".startsWith(filter.split(" ")[0])) {
+        if (g != "bad") result_from_good_bad = false;
         else {
-            a = filter.split(" ")[1]
-            // only top case:
-            if (filter.split(" ").length == 2) {
-                return u.startsWith(a) || d.startsWith(a);
-            }
+            // if user only typed "bad":
+            if (filter.split(" ").length == 1 || filter.split(" ")[1] == "")
+                result_from_good_bad = true;
             else {
-                b = filter.split(" ")[2]
-                return (u == a && d.startsWith(b)) || 
-                        (d == a && u.startsWith(b));
+                a = filter.split(" ")[1]
+                // only top case:
+                if (filter.split(" ").length == 2) {
+                    result_from_good_bad = u.startsWith(a) || d.startsWith(a);
+                }
+                else {
+                    b = filter.split(" ")[2]
+                    result_from_good_bad = (u == a && d.startsWith(b)) || 
+                            (d == a && u.startsWith(b));
+                }
             }
         }
     };
@@ -1081,13 +1089,14 @@ function passesFilter(obl, filter) {
     a = filter.split(" ")[0]
     // only top case:
     if (filter.split(" ").length == 1 || filter.split(" ")[1] == "") {
-        return u.startsWith(a) || d.startsWith(a);
+        result_from_non_good_bad = u.startsWith(a) || d.startsWith(a);
     }
     else {
         b = filter.split(" ")[1]
-        return (u == a && d.startsWith(b)) || 
+        result_from_non_good_bad = (u == a && d.startsWith(b)) || 
                 (d == a && u.startsWith(b));
     }
+    return result_from_good_bad || result_from_non_good_bad;
 }
 
 function generateScramble() {
