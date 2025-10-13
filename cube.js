@@ -1037,10 +1037,6 @@ async function init() {
     saveSelectedOBL();
 }
 
-function isObl(obl, filter) {
-    return obl.startsWith(filter);
-}
-
 function passesFilter(obl, filter) {
     // obl is the standardized string
     let g = obl[0];
@@ -1055,12 +1051,12 @@ function passesFilter(obl, filter) {
             a = filter.split(" ")[1]
             // only top case:
             if (filter.split(" ").length == 2) {
-                return isObl(u, a) || isObl(d, a);
+                return u.startsWith(a) || d.startsWith(a);
             }
             else {
                 b = filter.split(" ")[2]
-                return (u == a && isObl(d, b)) || 
-                        (d == a && isObl(u, b));
+                return (u == a && d.startsWith(b)) || 
+                        (d == a && u.startsWith(b));
             }
         }
     }
@@ -1072,12 +1068,12 @@ function passesFilter(obl, filter) {
             a = filter.split(" ")[1]
             // only top case:
             if (filter.split(" ").length == 2) {
-                return isObl(u, a) || isObl(d, a);
+                return u.startsWith(a) || d.startsWith(a);
             }
             else {
                 b = filter.split(" ")[2]
-                return (u == a && isObl(d, b)) || 
-                        (d == a && isObl(u, b));
+                return (u == a && d.startsWith(b)) || 
+                        (d == a && u.startsWith(b));
             }
         }
     };
@@ -1085,12 +1081,12 @@ function passesFilter(obl, filter) {
     a = filter.split(" ")[0]
     // only top case:
     if (filter.split(" ").length == 1 || filter.split(" ")[1] == "") {
-        return isObl(u, a) || isObl(d, a);
+        return u.startsWith(a) || d.startsWith(a);
     }
     else {
         b = filter.split(" ")[1]
-        return (u == a && isObl(d, b)) || 
-                (d == a && isObl(u, b));
+        return (u == a && d.startsWith(b)) || 
+                (d == a && u.startsWith(b));
     }
 }
 
