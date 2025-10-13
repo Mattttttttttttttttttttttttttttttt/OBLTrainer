@@ -396,11 +396,6 @@ function randrange(start, stop, step = 1) {
 // }
 
 
-// // "upright"
-// const OBL = {
-//     "1c": ""
-// };
-
 // let KARN = {
 //     U: Move.Move(3, 0),
 //     "U'": Move.Move(-3, 0),
@@ -1152,8 +1147,8 @@ function generateScramble() {
 }
 
 function showAll() {
-    for (let OBL of possibleOBL) {
-        showOBL(OBLname(OBL));
+    for (let obl of possibleOBL) {
+        showOBL(OBLname(obl));
     }
 }
 
@@ -1180,7 +1175,7 @@ function deselectOBL(obl) {
     if (selectedOBL.includes(obl)) {
         selectedOBL = selectedOBL.filter((a) => a != obl);
     }
-    if (eachCase && remainingOBL.includes(OBL)) {
+    if (eachCase && remainingOBL.includes(obl)) {
         remainingOBL = remainingOBL.filter((a) => a != obl);
     }
 }
@@ -1320,11 +1315,11 @@ function selectList(listName, setSelection) {
 
         saveSelectedOBL();
     } else {
-        for (let [OBL, inlist] of Object.entries(list)) {
+        for (let [obl, inlist] of Object.entries(list)) {
             if (inlist) {
-                showOBL(OBL);
+                showOBL(obl);
             } else {
-                hideOBL(OBL);
+                hideOBL(obl);
             }
         }
     }
