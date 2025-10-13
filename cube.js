@@ -1111,7 +1111,7 @@ function generateScramble() {
     OBLChoice += "-+"[randInt(0, 1)];
 
     console.log(OBLChoice)
-    scramble = generators[OBLChoice];
+    scramble = generators[OBLChoice][randInt(0, generators[OBLChoice].length)];
     // Add random begin and end layer moves
     let s = scramble[0];
     let e = scramble[scramble.length - 1];
@@ -1162,6 +1162,7 @@ function showOBL(text) {
 }
 
 function selectOBL(obl) {
+    // obl is the id of the element
     document.getElementById(obl).classList.add("checked");
     if (!selectedOBL.includes(obl)) {
         selectedOBL.push(obl);
