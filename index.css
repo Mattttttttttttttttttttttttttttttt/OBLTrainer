@@ -84,8 +84,7 @@ input[type="checkbox"] {
 /* Grille de cases */
 .obl-grid {
     display: grid;
-    flex: 1;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     align-content: top;
     gap: 0.5rem;
 
@@ -105,7 +104,7 @@ input[type="checkbox"] {
 .case {
     border: 3px solid #666; /* gray by default */
     font-weight: bold;
-    min-width: 120px;
+    min-width: 140px;
     height: 45px;
     border-radius: 4px;
     display: flex;
