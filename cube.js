@@ -1157,7 +1157,6 @@ let userLists = {};
 let highlightedList = null;
 
 let scrambleOffset = 0;
-let generators;
 let hasActiveScramble = false;
 let hasPreviousScramble = false;
 let isPopupOpen = false;
@@ -1317,21 +1316,8 @@ async function init() {
     }
     OBLListEl.innerHTML += buttons;
 
-    // Load generators
-    await fetch("./generators.json")
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then((data) => {
-            generators = data;
-            // Load local storage data only after generators
-            // have been loaded, so we can generate a scramble
-            getLocalStorageData();
-        })
-        .catch((error) => console.error("Failed to fetch data:", error));
+    getLocalStorageData();
+
     // Add buttons to the page for each OBL choice
     // Stored to a temp variable so we edit the page only once, and prevent a lag spike
 
@@ -1433,6 +1419,33 @@ function passesFilter(obl, filter) {
     return result_from_good_bad || result_from_non_good_bad;
 }
 
+function formatScramble(scramble) {
+    // Add random begin and end layer moves
+    let s = scramble[0];
+    let e = scramble[scramble.length - 1];
+    let start;
+    let end;
+    // if karn sep = "" else sep = ","
+    let sep = usingKarn ? "" : ","
+    if (s == "A") {
+        start = `${randrange(-5, 5, 3)}${sep}${randrange(-3, 7, 3)}`;
+    } else {
+        start = `${randrange(-3, 7, 3)}${sep}${randrange(-4, 6, 3)}`;
+    }
+    if (e == "A") {
+        end = `${randrange(-4, 6, 3)}${sep}${randrange(-3, 7, 3)}`;
+    } else {
+        end = `${randrange(-3, 7, 3)}${sep}${randrange(-5, 5, 3)}`;
+    }
+
+    let final = (
+        start +
+        scramble.slice(1, scramble.length - 1) +
+        end
+    ).replaceAll("/", " / ");
+    return final;
+}
+
 function generateScramble() {
     scrambleOffset = 0;
     if (selectedOBL.length === 0) {
@@ -1456,30 +1469,8 @@ function generateScramble() {
     }
 
     // selectedOBL should be a list of the OBL ids
-    scramble = getScramble(OBLChoice, usingKarn);
-    console.log(scramble);
-    // Add random begin and end layer moves
-    let s = scramble[0];
-    let e = scramble[scramble.length - 1];
-    let start;
-    let end;
-    // if karn sep = "" else sep = ","
-    if (s == "A") {
-        start = `${randrange(-5, 5, 3)},${randrange(-3, 7, 3)}`;
-    } else {
-        start = `${randrange(-3, 7, 3)},${randrange(-4, 6, 3)}`;
-    }
-    if (e == "A") {
-        end = `${randrange(-4, 6, 3)},${randrange(-3, 7, 3)}`;
-    } else {
-        end = `${randrange(-3, 7, 3)},${randrange(-5, 5, 3)}`;
-    }
+    scramble = formatScramble(getScramble(OBLChoice, usingKarn));
 
-    let final = (
-        start +
-        scramble.slice(1, scramble.length - 1) +
-        end
-    ).replaceAll("/", " / ");
     if (scrambleList.length != 0) {
         previousScramble = scrambleList[scrambleList.length - 1];
         previousScrambleEl.textContent =
@@ -1489,8 +1480,8 @@ function generateScramble() {
     if (!hasActiveScramble) {
         timerEl.textContent = "0.00";
     }
-    currentScrambleEl.textContent = final;
-    scrambleList.push(final);
+    currentScrambleEl.textContent = scramble;
+    scrambleList.push(scramble);
     hasActiveScramble = true;
 }
 
@@ -2013,12 +2004,26 @@ eachCaseEl.addEventListener("change", (e) => {
     if (eachCase == 1) {
         enableGoEachCase(eachCase);
     }
-    console.log("each case")
 });
 
 karnEl.addEventListener("change", (e) => {
     usingKarn = !usingKarn;
-    console.log(usingKarn);
+    if (usingKarn) {
+        // karnify scram
+        let scramble = currentScrambleEl.textContent.split("/"); // ["-3,5 ", " -4,1 ", " -1,0"]
+        let start = scramble.shift();
+        let end = scramble.pop();
+        // now scramble only has the middle stuff
+        for (let i = 0; i < scramble.length; i++) {
+            // get rid of spaces
+            scramble[i] = scramble[i].slice(1,-1);
+        }
+        scramble = scramble.join("/");
+        scramble = changesAlignment(start.split(",")[0]) ? "A/"+scramble : "a/"+scramble;
+        scramble += changesAlignment(end.split(",")[1]) ? "/a" : "/A";
+        scramble = formatScramble(karnify(scramble));
+        currentScrambleEl.textContent = scramble;
+    }
 });
 
 // Enable crosses
