@@ -1,11 +1,9 @@
-let canvas; //= document.getElementById("canvas")
-let ctx; //= canvas.getContext("2d")
-
 function mod(n, m) {
     return ((n % m) + m) % m;
 }
 
 function randInt(min, max) {
+    // max included
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
@@ -29,22 +27,28 @@ function randrange(start, stop, step = 1) {
 //     return [...str1].every((char) => str2.includes(char));
 // }
 
-// function shuffle(array) {
-//     let currentIndex = array.length;
+function shuffle(array) {
+    let currentIndex = array.length;
 
-//     // While there remain elements to shuffle...
-//     while (currentIndex != 0) {
-//         // Pick a remaining element...
-//         let randomIndex = Math.floor(Math.random() * currentIndex);
-//         currentIndex--;
+    // While there remain elements to shuffle...
+    while (currentIndex != 0) {
+        // Pick a remaining element...
+        let randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
 
-//         // And swap it with the current element.
-//         [array[currentIndex], array[randomIndex]] = [
-//             array[randomIndex],
-//             array[currentIndex],
-//         ];
-//     }
-// }
+        // And swap it with the current element.
+        [array[currentIndex], array[randomIndex]] = [
+            array[randomIndex],
+            array[currentIndex],
+        ];
+    }
+}
+
+function replaceWithDict(str, dict) {
+  // keys are already sorted longest → shortest
+  const pattern = new RegExp(Object.keys(dict).join("|"), "g");
+  return str.replace(pattern, match => dict[match]);
+}
 
 // const compareCS = (a, b) =>
 //     a.length === b.length &&
@@ -732,6 +736,334 @@ function randrange(start, stop, step = 1) {
 //     }
 // }
 
+// here i'll attempt to generate algs
+OBL = {"1c": "BBwWWwWWwWWw",
+       "cadj": "BBwBBwWWwWWw",
+       "copp": "BBwWWwBBwWWw",
+       "3c": "BBwBBwBBwWWw",
+       "4e": "BBwBBwBBwBBw",
+       "3e": "WWbWWbWWbWWw",
+       "line": "WWbWWwWWbWWw",
+       "L": "WWbWWbWWwWWw",
+       "1e": "WWbWWwWWwWWw",
+
+       "left pair": "WWbBBwWWwWWw",
+       "right pair": "BBbWWwWWwWWw",
+       "left arrow": "BBwWWwWWbWWw",
+       "right arrow": "BBwWWbWWwWWw",
+       "gem": "WWbBBbWWwWWw",
+       "left knight": "WWwWWbWWbBBw",
+       "right knight": "BBbWWbWWwWWw",
+       "left axe": "WWwWWbWWwBBb",
+       "right axe": "BBwWWbWWwWWb",
+       "squid": "BBwWWbWWbWWw",
+       "left thumb": "WWwWWbBBbWWb",
+       "right thumb": "WWbBBbWWwWWb",
+       "left bunny": "WWwBBbWWbWWb",
+       "right bunny": "WWbWWbBBwWWb",
+
+       "shell": "BBbBBwWWwWWw",
+       "left bird": "BBwWWwWWbBBw",
+       "right bird": "BBwBBbWWwWWw",
+       "hazard": "BBwWWbWWwBBw",
+       "left kite": "BBbBBbWWwWWw",
+       "right kite": "WWwWWbBBbBBw",
+       "left cut": "BBwBBwWWbWWb",
+       "right cut": "BBwBBbWWbWWw",
+       "T": "BBbBBwWWbWWw",
+       "left N": "WWbBBwWWbBBw",
+       "right N": "WWwBBbWWwBBb",
+       "tie": "WWbBBbWWwBBw",
+       "lefty yoshi": "BBbWWwBBwWWw",
+       "righty yoshi": "WWwBBwWWbBBw"}
+
+// format is 16-character string, both corner first
+const CUBEL = 24;
+const HALF_L = 6;
+const LAYERL = 12;
+const THREE_FOUR_L = 18;
+// const SOLVED_a = "AA1BB2CC3DD4EE5FF6GG7HH8";
+// const SOLVED_A = "4AA1BB2CC3DD8EE5FF6GG7HH";
+// const SLICE_a = "EE5FF6CC3DD4AA1BB2GG7HH8";
+// const SLICE_A = "8EE5FF2CC3DD4AA1BB6GG7HH";
+const SOLVED_a = "BBbBBbBBbBBbWWwWWwWWwWWw";
+const SOLVED_A = "bBBbBBbBBbBBwWWwWWwWWwWW";
+const SLICE_a = "WWwWWwBBbBBbBBbBBbWWwWWw";
+const SLICE_A = "wWWwWWbBBbBBbBBbBBwWWwWW";
+const KARN = {
+    "3,0":"U",
+    "-3,0":"U'",
+    "0,3":"D",
+    "0,-3":"D'",
+    "3,3":"e",
+    "2,-1":"u",
+    "-1,2":"d",
+    "-4,-1":"F'",
+    "-1,-4":"f'",
+    "2,-4":"T",
+    "2,2":"m",
+    "5,-1":"u2",
+    "-2,1":"u'",
+    "1,-2":"d'",
+    "4,1":"F",
+    "1,4":"f",
+    "-2,4":"T'",
+    "-2,-2":"m'",
+    "-5,1": "u2'"
+};
+const A_MOVES = [[3,0], [-3,0], [0,3], [0,-3], [3,3],
+    [2,-1], [-1,2], [-4,-1], [-1,-4], [2,-4], [2,2], [5,-1]];
+const a_MOVES = [[3,0], [-3,0], [0,3], [0,-3], [3,3],
+    [-2,1], [1,-2], [4,1], [1,4], [-2,4], [-2,-2], [-5,1]];
+const KARNL = a_MOVES.length;
+const HIGHKARN = {
+    // add spaces for de-ambiguity
+    "U U' U U' ": "U4 ",
+    "U' U U' U ": "U4' ",
+    "D D' D D' ": "D4 ",
+    "D' D D' D ": "D4' ",
+    "u u' u u' ": "u4 ",
+    "u' u u' u ": "u4' ",
+    "d d' d d' ": "d4 ",
+    "d' d d' d ": "d4' ",
+
+    "U U' U ": "U3 ",
+    "U' U U' ": "U3' ",
+    "D D' D ": "D3 ",
+    "D' D D' ": "D3' ",
+    "u u' u ": "u3 ",
+    "u' u u' ": "u3' ",
+    "d d' d ": "d3 ",
+    "d' d d' ": "d3' ",
+    "F F' F ": "F3 ",
+    "F' F F' ": "F3' ",
+    "f f' f ": "f3 ",
+    "f' f f' ": "f3' ",
+
+    "U U' ": "W ",
+    "U' U ": "W' ",
+    "D D' ": "B" ,
+    "D' D ": "B' ",
+    "u u' ": "w ",
+    "u' u ": "w' ",
+    "d d' ": "b ",
+    "d' d ": "b' ",
+    "F F' ": "F2 ",
+    "F' F ": "F2' ",
+    "f f' ": "f2 ",
+    "f' f ": "f2' ",
+
+    "U U ": "UU ",
+    "U' U' ": "UU' ",
+    "D D ": "DD ",
+    "D' D' ": "DD' "
+};
+// if the following moves accur, replace them with optimized ones
+// UPDATE THIS
+const OPTIM = {
+    "/3,3/3,3/": "-3,-3/-3,-3",
+    "/-3,-3/-3,-3/": "3,3/3,3"
+}
+
+const OPTIMMAP2 = new Map([
+    // moves in arrays: merge?, moves, merge?
+    [[[3,3], [3,3]], [true, [-3,-3], [-3,-3], true]]
+])
+
+function isOBL(layer, obl) {
+    // layer: 12-char string w/ BbWw, in cs
+    // obl: a key of OBL dict
+    // return: bool
+    let target = OBL[obl];
+    // if it's top misalign, change to bottom misalign
+    if (layer.charAt(0).toUpperCase() !== layer.charAt(0)) layer = shift(layer,-1);
+    for (let move = 1; move <= 3; move++) {
+        if (target === shift(layer, 3*move)) return true;
+    }
+    layer = layer_flip(layer);
+    for (let move = 1; move <= 3; move++) {
+        if (target === shift(layer, 3*move)) return true;
+    }
+    return false;
+}
+
+function randAMove() {
+    // return: key of A_MOVES
+    // console.log(A_MOVES)
+    // console.log(JSON.stringify(A_MOVES))
+    // console.log(JSON.parse(JSON.stringify(A_MOVES)))
+    // console.log(JSON.parse(JSON.stringify(A_MOVES)))
+    return JSON.parse(JSON.stringify(A_MOVES))[randInt(0,KARNL-1)];
+}
+
+function randaMove() {
+    // return: key of a_MOVES
+    // console.log(JSON.parse(JSON.stringify(a_MOVES)))
+    return JSON.parse(JSON.stringify(a_MOVES))[randInt(0,KARNL-1)];
+}
+
+function layer_flip(state){
+    `flips "w" to "b" and vice versa in the given state
+
+    Args:
+        state (str): the state (e.g. "BBbBBbWWwWWw")
+        
+    Returns:
+        str: the flipped state (e.g. "WWwWWwBBbBBb")
+    `
+    let return_val = [];
+    for (let c of state) {
+        switch (c) {
+            case "b":
+                return_val.push("w");
+                break;
+            case "B":
+                return_val.push("W");
+                break;
+            case "w":
+                return_val.push("b");
+                break;
+            case "W":
+                return_val.push("B");
+                break;
+            default:
+                console.log(c, ": from: layer_flip(): unrecognized piece")
+        }
+    }
+    return return_val.join("")
+}
+
+function shift(a, amount) {
+    // shift "ABC" to "CAB" aka cw move
+    // assumes amount <= a.length (although if it's equal it makes no impact)
+    amount *= -1;
+    if (amount < 0) amount += a.length;
+    return a.slice(amount) + a.slice(0, amount);
+}
+
+function move(cube, u,d) {
+    // u,d in int
+    return shift(cube.slice(0,LAYERL), u) + 
+            shift(cube.slice(LAYERL), d)
+}
+
+function slice(cube) {
+    return  cube.slice(LAYERL, THREE_FOUR_L) + // bottom sliced up
+            cube.slice(HALF_L, LAYERL) +
+            cube.slice(0,HALF_L) +
+            cube.slice(THREE_FOUR_L, CUBEL)
+}
+
+function changesAlignment(move) {
+    // move in [u, d], returns boolean
+    return mod(move, 3) != 0
+}
+
+function karnify(scramble) {
+    // scramble: e.g. "A/-3,0/-1,2/1,-2/-1,2/3,3/-2,-2/3,3/-3,0/-1,2/3,3/3,3/-2,4/A"
+    // returns "A U' d3 e m' e U' d e e T' A"
+    console.log(scramble);
+    scramble = scramble.split("/");
+    // first level karnify; skip the A and a
+    for (let i = 1; i < scramble.length-1; i++) {
+        scramble[i] = KARN[scramble[i]]
+    }
+    console.log(scramble)
+    // second level karnify
+    scramble = scramble.join(" ")
+    scramble = replaceWithDict(scramble, HIGHKARN)
+    return scramble
+}
+
+function optimize(scramble) {
+    while (replaceWithDict(scramble, OPTIM) !== scramble) {
+        //optimize needed
+        // console.log("optimizing");
+        let moves = scramble.split("/");
+        for (let i = 1; i < moves.length -1; i++) {
+            moves[i] = moves[i].split(",");
+            moves[i][0] = parseInt(moves[i][0], 10);
+            moves[i][1] = parseInt(moves[i][1], 10);
+        }
+        // moves now in ["A", [3, -3], [3, 0], "a"]
+        // CHANGE THIS IF MORE OPTIM
+        let optimable = Array.from(OPTIMMAP2.keys());
+        let lenOptim = 2;
+        for (let i = 1; i < moves.length - lenOptim; i++) {
+            for (let optseq of optimable) {
+                // for each optimable sequence; [[3,3], [3,3]]
+                for (let j = 0; j < lenOptim; j++) {
+                    // for each move in them
+                    if (JSON.stringify(moves[1+j]) !== JSON.stringify(optseq[j])) break;
+                    if (j === lenOptim-1) {
+                        // match
+                        target = OPTIMMAP2[optseq]; // [merge?, [3,3], [3,3], merge?]
+                        // need to check if we are at the start, then check mod alignment? and change A
+                        
+                    }
+                }
+            }
+        }
+    };
+}
+
+function getScramble(obl, karn) {
+    // obl: e.g. "left gem/knight"
+    // return: e.g."A/-3,-3/0,3/0,-3/-1,-4/-3,0/3,0/0,-3/0,3/a" or in karn
+    let moves = "";
+    let abf;
+    let topA; // bool: top misalign?
+    let [u, d] = obl.split("/");
+    console.log(u,d);
+    let state;
+    while (true) {
+        if (Math.random() < 0.5) {
+            // A start
+            moves += "A/";
+            topA = true;
+            state = SLICE_A;
+        }
+        else {
+            // a start
+            moves += "a/";
+            topA = false;
+            state = SLICE_a;
+        }
+        // first 5 slices
+        // since the check happens post move, here we only do 4 slices + initial slice = 5
+        for (let i = 1; i < 5; i++) {
+            abf = topA ? randAMove() : randaMove();
+            state = slice(move(state, abf[0], abf[1]));
+            moves += `${abf[0]},${abf[1]}/`
+            if (changesAlignment(abf[0])) topA = !topA;
+        }
+        // slice 6-10
+        for (let i = 5; i <= 10; i++){
+            abf = topA ? randAMove() : randaMove();
+            // console.log(topA, abf, moves)
+            state = slice(move(state, abf[0], abf[1]));
+            moves += `${abf[0]},${abf[1]}/`
+            if (changesAlignment(abf[0])) topA = !topA;
+            // includes check for layer flip
+            if (isOBL(state.slice(0,LAYERL), u)) console.log("left knight", state.slice(0,LAYERL));
+            if (isOBL(state.slice(0,LAYERL), d)) console.log("gem", state.slice(0,LAYERL));
+            if ((isOBL(state.slice(0,LAYERL), u) &&
+                isOBL(state.slice(LAYERL), d)) ||
+                (isOBL(state.slice(0,LAYERL), d) &&
+                isOBL(state.slice(LAYERL), u))) {
+                currentA = topA ? "A" : "a";
+                moves += currentA;
+                // moves = optimize(moves);
+                if (karn) {moves = karnify(moves)};
+                return moves;
+            }
+        }
+        moves = "";
+    }
+}
+
+// console.log(getScramble("4e/4e", true))
+
 // Variables
 let possibleOBL = [
     ["", "1c", "1c"],
@@ -816,6 +1148,7 @@ let previousScramble = null;
 
 let remainingOBL = [];
 let eachCase = 0; // 0 = random, n = get each case n times before moving on
+let usingKarn = false;
 const MIN_EACHCASE = 2;
 const MAX_EACHCASE = 4;
 
@@ -855,6 +1188,7 @@ const OBLListEl = document.getElementById("results");
 const filterInputEl = document.getElementById("filter");
 
 const eachCaseEl = document.getElementById("allcases");
+const karnEl = document.getElementById("karn");
 
 // Selection buttons
 const selectAllEl = document.getElementById("sela");
@@ -1101,7 +1435,7 @@ function passesFilter(obl, filter) {
 
 function generateScramble() {
     scrambleOffset = 0;
-    if (selectedOBL.length == 0) {
+    if (selectedOBL.length === 0) {
         timerEl.textContent = "--:--";
         currentScrambleEl.textContent = "Scramble will show up here";
         hasActiveScramble = false;
@@ -1109,7 +1443,7 @@ function generateScramble() {
         return;
     }
     if (eachCase > 0) {
-        if (remainingOBL.length == 0) {
+        if (remainingOBL.length === 0) {
             let number = eachCaseEl.checked
                 ? 1
                 : randInt(MIN_EACHCASE, MAX_EACHCASE);
@@ -1121,12 +1455,15 @@ function generateScramble() {
         OBLChoice = selectedOBL[randInt(0, selectedOBL.length - 1)];
     }
 
-    scramble = generators[OBLChoice][randInt(0, generators[OBLChoice].length)];
+    // selectedOBL should be a list of the OBL ids
+    scramble = getScramble(OBLChoice, usingKarn);
+    console.log(scramble);
     // Add random begin and end layer moves
     let s = scramble[0];
     let e = scramble[scramble.length - 1];
     let start;
     let end;
+    // if karn sep = "" else sep = ","
     if (s == "A") {
         start = `${randrange(-5, 5, 3)},${randrange(-3, 7, 3)}`;
     } else {
@@ -1233,7 +1570,6 @@ function resetTimer() {
         timerEl.textContent = "--:--";
     }
     setColor("");
-    console.log("Reset timer");
 }
 function timerBeginTouch(spaceEquivalent) {
     if (!hasActiveScramble) return;
@@ -1671,11 +2007,18 @@ fileEl.addEventListener("change", (e) => {
     reader.readAsText(file);
 });
 
+//PLACE OF INTEREST
 eachCaseEl.addEventListener("change", (e) => {
     eachCase = eachCaseEl.checked ? 1 : randInt(MIN_EACHCASE, MAX_EACHCASE);
     if (eachCase == 1) {
         enableGoEachCase(eachCase);
     }
+    console.log("each case")
+});
+
+karnEl.addEventListener("change", (e) => {
+    usingKarn = !usingKarn;
+    console.log(usingKarn);
 });
 
 // Enable crosses
