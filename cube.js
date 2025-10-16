@@ -499,7 +499,7 @@ let possibleOBL = [
     ["good", "tie", "tie"],
     ["bad", "tie", "tie"]
 ];
-let selectedOBL = [];
+let selectedOBL = []; // [oblid]
 let scrambleList = []; // [[normal, karn], etc.]
 
 let previousScramble = null;
@@ -793,9 +793,10 @@ function generateScramble() {
             enableGoEachCase(number);
         }
         let caseNum = randInt(0, remainingOBL.length - 1);
-        OBLChoice = remainingOBL.splice(caseNum, 1)[0];
+        OBLChoice = remainingOBL.splice(caseNum, 1);
     } else {
         OBLChoice = selectedOBL[randInt(0, selectedOBL.length - 1)];
+        console.log("line 798, does this ever happen?")
     }
 
     // selectedOBL should be a list of the OBL ids
