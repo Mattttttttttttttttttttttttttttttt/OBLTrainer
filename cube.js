@@ -23,10 +23,6 @@ function randrange(start, stop, step = 1) {
     return start + index * step;
 }
 
-// function allCharsIn(str1, str2) {
-//     return [...str1].every((char) => str2.includes(char));
-// }
-
 function shuffle(array) {
     let currentIndex = array.length;
 
@@ -99,10 +95,6 @@ const CUBEL = 24;
 const HALF_L = 6;
 const LAYERL = 12;
 const THREE_FOUR_L = 18;
-// const SOLVED_a = "AA1BB2CC3DD4EE5FF6GG7HH8";
-// const SOLVED_A = "4AA1BB2CC3DD8EE5FF6GG7HH";
-// const SLICE_a = "EE5FF6CC3DD4AA1BB2GG7HH8";
-// const SLICE_A = "8EE5FF2CC3DD4AA1BB6GG7HH";
 const SOLVED_a = "BBbBBbBBbBBbWWwWWwWWwWWw";
 const SOLVED_A = "bBBbBBbBBbBBwWWwWWwWWwWW";
 const SLICE_a = "WWwWWwBBbBBbBBbBBbWWwWWw";
@@ -409,7 +401,6 @@ function getScramble(obl) {
                 isOBL(state.slice(LAYERL), d)) ||
                 (isOBL(state.slice(0,LAYERL), d) &&
                 isOBL(state.slice(LAYERL), u))) {
-                console.log(moves)
                 currentA = topA ? "A" : "a";
                 moves += currentA;
                 moves = optimize(moves);
@@ -1074,7 +1065,6 @@ function selectList(listName, setSelection) {
     }
     if (setSelection) {
         for (let [obl, inlist] of Object.entries(list)) {
-            console.log(obl,inlist);
             if (inlist) {
                 showOBL(obl);
                 selectOBL(obl);
@@ -1087,7 +1077,6 @@ function selectList(listName, setSelection) {
         saveSelectedOBL();
     } else {
         for (let [obl, inlist] of Object.entries(list)) {
-            console.log(obl,inlist);
             if (inlist) {
                 showOBL(obl);
             } else {
@@ -1286,7 +1275,7 @@ selectListEl.addEventListener("click", () => {
         return;
     }
     selectList(highlightedList, false);
-    closePopup(); // TODO: this is not working
+    closePopup();
 });
 
 deleteListEl.addEventListener("click", () => {
@@ -1357,18 +1346,6 @@ timerBoxEl.addEventListener("touchend", (e) => {
     timerEndTouch(true);
 });
 
-// currentScrambleEl.addEventListener("click", () => {
-//     if (usingTimer()) return;
-//     if (isPopupOpen || !hasActiveScramble) return;
-//     openScramblePopup(currentScrambleEl.innerText);
-// });
-
-// previousScrambleEl.addEventListener("click", () => {
-//     if (usingTimer()) return;
-//     if (isPopupOpen || !hasPreviousScramble) return;
-//     openScramblePopup(previousScramble);
-// });
-
 toggleUiEl.addEventListener("click", () => {
     if (usingTimer()) return;
     if (sidebarEl.classList.contains("hidden")) {
@@ -1424,7 +1401,6 @@ eachCaseEl.addEventListener("change", (e) => {
 });
 
 karnEl.addEventListener("change", (e) => {
-    // TODO
     usingKarn ^= 1; // switches between 0 and 1 with XOR
     currentScrambleEl.textContent = scrambleList.at(-1-scrambleOffset)[usingKarn];
     if (scrambleList.at(-2-scrambleOffset) !== undefined) {
