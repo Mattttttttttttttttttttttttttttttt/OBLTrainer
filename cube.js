@@ -703,7 +703,8 @@ function getLocalStorageData() {
 
 function saveSelectedOBL() {
     localStorage.setItem("selectedOBL", JSON.stringify(selectedOBL));
-    if (!hasActiveScramble || selectedOBL.length !== 0) generateScramble(); // see if this works TODO
+    // this is === 0 cuz genScram() has a if statement that deletes the scram if so
+    if (!hasActiveScramble || selectedOBL.length === 0) generateScramble();
 }
 
 function saveUserLists() {
