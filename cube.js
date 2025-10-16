@@ -50,691 +50,6 @@ function replaceWithDict(str, dict) {
   return str.replace(pattern, match => dict[match]);
 }
 
-// const compareCS = (a, b) =>
-//     a.length === b.length &&
-//     a.every(
-//         (element, index) =>
-//             (element >= 0 && b[index] >= 0) ||
-//             (element == -1 && element == b[index])
-//     );
-
-// const LAYER_DEG = 15;
-// const EDGE_DEG = 30;
-// const CORNER_DEG = 60;
-
-// colorscheme
-// let TOPCOL = "#444";
-// let BOTCOL = "white";
-// let BLANKCOL = "#888";
-// let TSIDECOLS = ["red", "#0f5fff", "orange", "#00db33"];
-// let BSIDECOLS = ["red", "#00db33", "orange", "#0f5fff"];
-
-// function rad(deg) {
-//     return (deg * Math.PI) / 180;
-// }
-
-// const LAYER_RAD = rad(LAYER_DEG);
-// const EDGE_RAD = rad(EDGE_DEG);
-// const CORNER_RAD = rad(CORNER_DEG);
-
-// const PADDING = 0.3;
-
-// class Move {
-//     static Slice = 0b11111111;
-//     static U = 0b11110000;
-//     static D = 0b00001111;
-//     static Move(u, d) {
-//         return (mod(u, 12) << 4) + mod(d, 12);
-//     }
-//     static isSlice(move) {
-//         return move == this.Slice;
-//     }
-//     static Up(move) {
-//         return (move & this.U) >> 4;
-//     }
-//     static Down(move) {
-//         return move & this.D;
-//     }
-//     static Add(a, b) {
-//         u1 = this.Up(a);
-//         u2 = this.Up(b);
-//         d1 = this.Down(a);
-//         d2 = this.Down(b);
-//         return this.Move(u1 + u2, d1 + d2);
-//     }
-//     static Sub(a, b) {
-//         u1 = this.Up(a);
-//         u2 = this.Up(b);
-//         d1 = this.Down(a);
-//         d2 = this.Down(b);
-//         return this.Move(u1 - u2, d1 - d2);
-//     }
-//     static toString(move, short = false) {
-//         if (this.isSlice(move)) return "/";
-//         let u = this.Up(move);
-//         let d = this.Down(move);
-//         if (u > 6) u -= 12;
-//         if (d > 6) d -= 12;
-//         if (short) return u + d;
-//         return "(" + u + ", " + d + ")";
-//     }
-// }
-
-// class Sequence {
-//     static parseMove(move) {
-//         move = move.replace(/[^0-9\/,\-]/g, "");
-//         if (move == "/") return Move.Slice;
-//         if (move.includes(",")) {
-//             // There is a separator
-//             let nums = move.split(",");
-//             return Move.Move(parseInt(nums[0]), parseInt(nums[1]));
-//         } else {
-//             switch (move.length) {
-//                 case 2:
-//                     return Move.Move(parseInt(move[0]), parseInt(move[1]));
-//                 case 3:
-//                     if (move[0] == "-")
-//                         return Move.Move(
-//                             parseInt(move.slice(0, 2)),
-//                             parseInt(move[2])
-//                         );
-//                     return Move.Move(
-//                         parseInt(move[0]),
-//                         parseInt(move.slice(1))
-//                     );
-//                 case 4:
-//                     return Move.Move(
-//                         parseInt(move.slice(0, 2)),
-//                         parseInt(move.slice(2))
-//                     );
-//             }
-//         }
-//     }
-
-//     constructor(string) {
-//         this.moves = [];
-//         string = string.replace(/[^0-9\/,\-]/g, "");
-//         let moveTxt = string.split(/(\/)/).filter((part) => part !== "");
-//         for (let i = 0; i < moveTxt.length; i++) {
-//             if (moveTxt[i] == "") continue;
-//             this.moves.push(Sequence.parseMove(moveTxt[i]));
-//         }
-//     }
-
-//     toString(karn = false) {
-//         let str = "";
-//         for (let i = 0; i < this.moves.length; i++) {
-//             str += Move.toString(this.moves[i]);
-//         }
-//         return str;
-//     }
-// }
-
-// class Point {
-//     constructor(x, y) {
-//         this.x = x;
-//         this.y = y;
-//     }
-
-//     rotateAround(center, angleRad) {
-//         // Translation relative au centre
-//         const dx = this.x - center.x;
-//         const dy = this.y - center.y;
-
-//         // Rotation
-//         const rotatedX = dx * Math.cos(angleRad) - dy * Math.sin(angleRad);
-//         const rotatedY = dx * Math.sin(angleRad) + dy * Math.cos(angleRad);
-
-//         // Mise à jour des coordonnées
-//         this.x = rotatedX + center.x;
-//         this.y = rotatedY + center.y;
-//     }
-
-//     addC(dx, dy) {
-//         this.x += dx;
-//         this.y += dy;
-//     }
-
-//     addP(point) {
-//         this.x += point.x;
-//         this.y += point.y;
-//     }
-
-//     toString() {
-//         return `(${this.x.toFixed(2)}, ${this.y.toFixed(2)})`;
-//     }
-// }
-
-// const P0 = new Point(0, 0);
-
-// function drawPolygon(points, fillColor, strokeColor = "black") {
-//     if (points.length < 3) return;
-
-//     ctx.beginPath();
-//     ctx.moveTo(points[0].x, points[0].y);
-
-//     for (let i = 1; i < points.length; i++) {
-//         ctx.lineTo(points[i].x, points[i].y);
-//     }
-
-//     ctx.closePath();
-//     ctx.fillStyle = fillColor;
-//     ctx.fill();
-//     ctx.strokeStyle = strokeColor;
-//     ctx.lineWidth = 1;
-//     ctx.stroke();
-// }
-
-// function drawPoint(point, color = "black", radius = 3) {
-//     ctx.beginPath();
-//     ctx.arc(point.x, point.y, radius, 0, 2 * Math.PI);
-//     ctx.fillStyle = color;
-//     ctx.fill();
-// }
-
-// function drawSlice(center, color = "#ff5500", scale = 100) {
-//     let padding = scale * PADDING * 1.5;
-//     ctx.beginPath();
-//     ctx.moveTo(center.x, center.y - scale - padding);
-//     ctx.lineTo(center.x, center.y + scale + padding);
-//     ctx.strokeStyle = "black";
-//     ctx.lineWidth = 3;
-//     ctx.stroke();
-// }
-
-// function drawEquator(center, flipped, scale = 100) {
-//     let l = center.x - (scale * 2) / 3;
-//     let r = flipped ? center.x + (scale * 2) / 3 : center.x + (scale * 4) / 3;
-//     let t = center.y - scale / 4;
-//     let b = center.y + scale / 4;
-
-//     let TL = new Point(l, t);
-//     let TM = new Point(center.x, center.y - scale / 4);
-//     let TR = new Point(r, t);
-
-//     let BL = new Point(l, b);
-//     let BM = new Point(center.x, center.y + scale / 4);
-//     let BR = new Point(r, b);
-
-//     drawPolygon([TL, TM, BM, BL], TSIDECOLS[0]);
-//     drawPolygon([TR, TM, BM, BR], TSIDECOLS[flipped * 2]);
-// }
-
-// function drawEdge(
-//     center,
-//     step,
-//     sideCol,
-//     isTopColor,
-//     isTopLayer,
-//     scale = 100,
-//     sideBlank = false,
-//     topBlank = false
-// ) {
-//     let padding = scale * PADDING;
-//     let innerLength = scale - padding;
-//     let offRad = step * EDGE_RAD;
-//     let sideColors = isTopColor ? TSIDECOLS : BSIDECOLS;
-//     // define points
-//     // il, ir = inner outer corners (end of top area)
-//     // ol, or = outer corners (side color points) (tingman reference)
-//     // All coords relative to 0 for now
-//     let il = new Point(innerLength * Math.tan(LAYER_RAD), innerLength);
-//     let ir = new Point(-innerLength * Math.tan(LAYER_RAD), innerLength);
-
-//     let ol = new Point(scale * Math.tan(LAYER_RAD), scale);
-//     let or = new Point(-scale * Math.tan(LAYER_RAD), scale);
-//     // adjust alignment based on layer, and flip if bottom layer
-//     if (isTopLayer) offRad += LAYER_RAD;
-//     else offRad += Math.PI + LAYER_RAD;
-
-//     il.rotateAround(P0, offRad);
-//     ir.rotateAround(P0, offRad);
-//     ol.rotateAround(P0, offRad);
-//     or.rotateAround(P0, offRad);
-
-//     il.addP(center);
-//     ir.addP(center);
-//     ol.addP(center);
-//     or.addP(center);
-
-//     // draw
-//     let layerColor, sideColor;
-//     if (sideBlank) sideColor = BLANKCOL;
-//     else sideColor = sideColors[sideCol];
-//     if (topBlank) layerColor = BLANKCOL;
-//     else layerColor = isTopColor ? TOPCOL : BOTCOL;
-//     // Top part
-//     drawPolygon([center, il, ir], layerColor);
-//     drawPolygon([il, ir, or, ol], sideColor);
-// }
-
-// function drawCorner(
-//     center,
-//     step,
-//     leftCol,
-//     isTopColor,
-//     isTopLayer,
-//     scale = 100,
-//     sideBlank = false,
-//     topBlank = false
-// ) {
-//     let padding = scale * PADDING;
-//     let innerLength = scale - padding;
-//     let offRad = step * EDGE_RAD;
-//     let sideColors = isTopColor ? TSIDECOLS : BSIDECOLS;
-
-//     // points
-//     // Just like edges, except we add im, om
-//     // ir and or are a rotation of il and ol by CORNER_RAD:
-//     let il = new Point(-innerLength * Math.tan(LAYER_RAD), innerLength);
-//     let ol = new Point(-scale * Math.tan(LAYER_RAD), scale);
-//     let im = new Point(
-//         -innerLength * Math.tan(LAYER_RAD + EDGE_RAD),
-//         innerLength
-//     );
-//     let om = new Point(-scale * Math.tan(LAYER_RAD + EDGE_RAD), scale);
-//     let ir = new Point(-innerLength * Math.tan(LAYER_RAD), innerLength);
-//     let or = new Point(-scale * Math.tan(LAYER_RAD), scale);
-//     ir.rotateAround(P0, CORNER_RAD);
-//     or.rotateAround(P0, CORNER_RAD);
-
-//     // adjust alignment based on layer
-//     if (isTopLayer) offRad -= LAYER_RAD;
-//     else offRad -= LAYER_RAD + Math.PI;
-
-//     il.rotateAround(P0, offRad);
-//     ol.rotateAround(P0, offRad);
-//     im.rotateAround(P0, offRad);
-//     om.rotateAround(P0, offRad);
-//     ir.rotateAround(P0, offRad);
-//     or.rotateAround(P0, offRad);
-
-//     il.addP(center);
-//     im.addP(center);
-//     ir.addP(center);
-//     ol.addP(center);
-//     om.addP(center);
-//     or.addP(center);
-
-//     // draw
-//     let layerColor, sideColor0, sideColor1;
-//     if (topBlank) layerColor = BLANKCOL;
-//     else layerColor = isTopColor ? TOPCOL : BOTCOL;
-//     if (sideBlank) {
-//         sideColor0 = sideColor1 = BLANKCOL;
-//     } else {
-//         let rightCol = mod(leftCol + 1, 4);
-//         sideColor0 = sideColors[leftCol];
-//         sideColor1 = sideColors[rightCol];
-//     }
-
-//     drawPolygon([center, il, im, ir], layerColor);
-//     drawPolygon([il, ol, om, im], sideColor0);
-//     drawPolygon([im, om, or, ir], sideColor1);
-// }
-
-// function drawCursor(center, step, scale = 100) {
-//     // outer cursor
-//     let offRad = step * EDGE_RAD;
-//     let distance = scale * (1 + PADDING * 1.5);
-//     let radius = scale / 8;
-//     let touchPt = new Point(center.x, center.y - scale);
-//     let cedgePt = new Point(center.x, center.y - distance + radius);
-//     let cursor = new Point(center.x, center.y - distance);
-//     touchPt.rotateAround(center, offRad);
-//     cursor.rotateAround(center, offRad);
-//     cedgePt.rotateAround(center, offRad);
-//     ctx.beginPath();
-//     ctx.lineWidth = 1;
-//     ctx.arc(cursor.x, cursor.y, radius, 0, 2 * Math.PI);
-//     ctx.fillStyle = "black";
-//     ctx.fill();
-//     ctx.lineWidth = scale / 20;
-//     ctx.strokeStyle = "red";
-//     ctx.stroke();
-//     ctx.beginPath();
-//     ctx.moveTo(cedgePt.x, cedgePt.y);
-//     ctx.lineTo(touchPt.x, touchPt.y);
-//     ctx.lineWidth = scale / 30;
-//     ctx.stroke();
-// }
-
-
-// let KARN = {
-//     U: Move.Move(3, 0),
-//     "U'": Move.Move(-3, 0),
-//     D: Move.Move(0, 3),
-//     "D'": Move.Move(0, -3),
-//     u: Move.Move(2, -1),
-//     "u'": Move.Move(-2, 1),
-//     d: Move.Move(-1, 2),
-//     "d'": Move.Move(1, -2),
-//     M: Move.Move(1, 1),
-//     "M'": Move.Move(-1, -1),
-//     m: Move.Move(2, 2),
-//     "m'": Move.Move(-2, -2),
-//     F: Move.Move(4, 1),
-//     "F'": Move.Move(-4, -1),
-//     f: Move.Move(1, 4),
-//     "f'": Move.Move(-1, -4),
-//     T: Move.Move(2, -4),
-//     "T'": Move.Move(-2, 4),
-//     t: Move.Move(-4, 2),
-//     "t'": Move.Move(4, -2),
-// };
-
-// const kmoves = Object.entries(KARN);
-
-// function testOBL(layer) {
-//     for (let [name, value] of Object.entries(OBL)) {
-//         if (layer == value) return name;
-//     }
-//     return 0;
-// }
-
-// function rotateLayer(layer, full) {
-//     const n = 6 + full;
-//     return layer.slice(n) + layer.slice(0, n);
-// }
-
-// function offsetLayer(layer, top) {
-//     const a = top ? "A".charCodeAt(0) : "E".charCodeAt(0);
-//     const offnum = top ? 0 : 4;
-//     let str = "";
-//     for (const s of layer) {
-//         if (isNaN(s))
-//             str += String.fromCharCode(mod(s.charCodeAt(0) - a + 1, 4) + a);
-//         else str += (mod(parseInt(s), 4) + 1 + offnum).toString();
-//     }
-//     return str;
-// }
-
-// function findPLL(layer, top, full = false) {
-//     layer = top ? layer : layer.slice(-1) + layer.slice(0, -1);
-//     const limit = 4 + 4 * full;
-//     for (let i = 0; i < limit; i++) {
-//         let oblName = testPLL(layer);
-//         if (oblName) return oblName;
-//         layer = rotateLayer(layer, full);
-//     }
-//     return false;
-// }
-
-// [top?, color (1st clockwise for corners), corner?]
-// const pieceProperties = [
-//     [true, 0, true],
-//     [true, 1, false],
-//     [true, 1, true],
-//     [true, 2, false],
-//     [true, 2, true],
-//     [true, 3, false],
-//     [true, 3, true],
-//     [true, 0, false],
-
-//     [false, 0, false],
-//     [false, 0, true],
-//     [false, 1, false],
-//     [false, 1, true],
-//     [false, 2, false],
-//     [false, 2, true],
-//     [false, 3, false],
-//     [false, 3, true],
-// ];
-
-// class Cube {
-//     constructor(descriptor) {
-//         this.setPosition(descriptor);
-//     }
-
-//     setPosition(position) {
-//         const l = position.length;
-//         // top layer
-//         this.topPieces = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
-//         let tcorners = 0;
-//         let i = 0;
-//         for (; i + tcorners < 12; i++) {
-//             let l = position[i];
-//             this.topPieces[i + tcorners] = solved.indexOf(l);
-//             if (isNaN(l)) {
-//                 tcorners++;
-//             }
-//         }
-//         this.botPieces = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
-//         let bcorners = 0;
-//         for (let i = 12 - tcorners; i + bcorners + tcorners < 24; i++) {
-//             let l = position[i];
-//             let idx = i + bcorners + tcorners - 12;
-//             this.botPieces[idx] = solved.indexOf(l);
-//             if (isNaN(l)) {
-//                 bcorners++;
-//             }
-//         }
-//         this.barflip = position[16] == "/" || position[16] == "+";
-//     }
-
-//     draw(center, scale = 100, blanks = false) {
-//         const topCenter = new Point(
-//             center.x - scale * 1.5,
-//             center.y - scale / 2
-//         );
-//         const botCenter = new Point(
-//             center.x + scale * 1.5,
-//             center.y - scale / 2
-//         );
-//         const barCenter = new Point(center.x, center.y + scale);
-//         ctx.clearRect(0, 0, canvas.width, canvas.height);
-//         // top layer
-//         for (let i = 0; i < 12; i++) {
-//             let piece = this.topPieces[i];
-//             if (piece == -1) continue;
-//             const props = pieceProperties[piece];
-//             if (props[2]) {
-//                 // corner
-//                 drawCorner(topCenter, i, props[1], props[0], true, scale);
-//             } else {
-//                 drawEdge(topCenter, i, props[1], props[0], true, scale);
-//             }
-//         }
-//         // bottom layer
-//         for (let i = 0; i < 12; i++) {
-//             let piece = this.botPieces[i];
-//             if (piece == -1) continue;
-//             const props = pieceProperties[piece];
-//             if (props[2]) {
-//                 // corner
-//                 drawCorner(botCenter, i, props[1], props[0], false, scale);
-//             } else {
-//                 drawEdge(botCenter, i, props[1], props[0], false, scale);
-//             }
-//         }
-//         // equator
-//         drawEquator(barCenter, this.barflip, scale);
-//         // slice lines
-//         // drawSlice(topCenter, scale);
-//         // drawSlice(botCenter, scale);
-
-//         // temp
-//     }
-
-//     topLayerString() {
-//         let str = "";
-//         for (let i = 0; i < 12; i++) {
-//             let number = this.topPieces[i];
-//             if (number == -1) continue;
-//             str += solved[number];
-//         }
-//         return str;
-//     }
-
-//     botLayerString() {
-//         let str = "";
-//         for (let i = 0; i < 12; i++) {
-//             let number = this.botPieces[i];
-//             if (number == -1) continue;
-//             str += solved[number];
-//         }
-//         return str;
-//     }
-
-//     barChar(flip = this.barflip) {
-//         return (flip ? "+" : "-").toString();
-//     }
-
-//     isOblSolved() {
-//         return (
-//             this.topPieces.every((n) => n < 8) &&
-//             this.botPieces.every((n) => n > 7 || n == -1)
-//         );
-//     }
-
-//     OBLCase(full = true) {
-//         const top = findPLL(this.topLayerString(), true, full);
-//         const bot = findPLL(this.botLayerString(), false, full);
-//         const bf = (this.barflip ? "+" : "-").toString();
-//         if (top == "-") return ":" + bot + bf;
-//         if (bot == "-") return top + ":" + bf;
-//         return top + "/" + bot + bf;
-//     }
-
-//     setOBL(top, bot, preU, preD, u, d, flip) {
-//         preU = mod(preU, 4);
-//         preD = mod(preD, 4);
-//         u = mod(u, 8);
-//         d = mod(d, 8);
-//         let topStr = TPLL[top];
-//         let botStr = BPLL[bot];
-//         for (; preU > 0; preU--) topStr = offsetLayer(topStr, true);
-//         for (; preD > 0; preD--) botStr = offsetLayer(botStr, false);
-//         for (; u > 0; u--) topStr = rotateLayer(topStr, true);
-//         for (; d > 0; d--) botStr = rotateLayer(botStr, true);
-//         this.setPosition(topStr + botStr + this.barChar(flip));
-//     }
-
-//     descriptor() {
-//         return this.topLayerString() + this.botLayerString() + this.barChar();
-//     }
-
-//     isStrictCubeShape() {
-//         // aligned
-//         return (
-//             compareCS(
-//                 this.topPieces,
-//                 [0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0]
-//             ) &&
-//             compareCS(this.botPieces, [0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1])
-//         );
-//     }
-
-//     isSliceable(u, d) {
-//         if (
-//             this.topPieces[mod(-u, 12)] == -1 ||
-//             this.topPieces[mod(-u + 6, 12)] == -1
-//         ) {
-//             return false;
-//         }
-//         if (
-//             this.botPieces[mod(-d, 12)] == -1 ||
-//             this.botPieces[mod(-d + 6, 12)] == -1
-//         ) {
-//             return false;
-//         }
-//         return true;
-//     }
-
-//     nextSliceables() {
-//         let tp = 6,
-//             tn = -6,
-//             bp = 6,
-//             bn = -6;
-//         for (let i = 1; i <= 6; i++) {
-//             if (this.isSliceable(i, 0)) {
-//                 tp = i;
-//                 break;
-//             }
-//         }
-//         for (let i = -1; i >= -6; i--) {
-//             if (this.isSliceable(i, 0)) {
-//                 tn = i;
-//                 break;
-//             }
-//         }
-//         for (let i = 1; i <= 6; i++) {
-//             if (this.isSliceable(0, i)) {
-//                 bp = i;
-//                 break;
-//             }
-//         }
-//         for (let i = -1; i >= -6; i--) {
-//             if (this.isSliceable(0, i)) {
-//                 bn = i;
-//                 break;
-//             }
-//         }
-//         return [tp, tn, bp, bn];
-//     }
-
-//     applySequence(sequence) {
-//         for (let i = 0; i < sequence.moves.length; i++) {
-//             this.applyMove(sequence.moves[i]);
-//         }
-//     }
-
-//     applyMove(move) {
-//         if (Move.isSlice(move)) {
-//             this.slice();
-//             return;
-//         }
-//         this.turn(Move.Up(move), Move.Down(move));
-//     }
-
-//     turn(u, d) {
-//         if (!this.isSliceable(u, d)) {
-//             console.error("destination unsliceable");
-//             return;
-//         }
-//         // top
-//         let tempPieces = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
-//         for (let i = 0; i < 12; i++) {
-//             tempPieces[i] = this.topPieces[mod(i - u, 12)];
-//         }
-//         for (let i = 0; i < 12; i++) {
-//             this.topPieces[i] = tempPieces[i];
-//         }
-//         // bottom
-//         tempPieces = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
-
-//         for (let i = 0; i < 12; i++) {
-//             tempPieces[i] = this.botPieces[mod(i - d, 12)];
-//         }
-//         for (let i = 0; i < 12; i++) {
-//             this.botPieces[i] = tempPieces[i];
-//         }
-//     }
-
-//     slice() {
-//         if (this.topPieces[0] == -1 || this.topPieces[6] == -1) {
-//             console.error("Unsliceable on top layer");
-//             return;
-//         }
-//         if (this.botPieces[0] == -1 || this.botPieces[6] == -1) {
-//             console.error("Unsliceable on bottom layer");
-//             return;
-//         }
-//         // swap top[6:11] with bot[0:5]
-//         // Save all values
-//         let lt = this.topPieces.slice(0, 6);
-//         let rt = this.topPieces.slice(6);
-//         let lb = this.botPieces.slice(6);
-//         let rb = this.botPieces.slice(0, 6);
-
-//         // Assign new values
-//         this.topPieces = lt.concat(rb);
-//         this.botPieces = rt.concat(lb);
-
-//         // change barflip
-//         this.barflip = !this.barflip;
-//     }
-// }
 
 // here i'll attempt to generate algs
 OBL = {"1c": "BBwWWwWWwWWw",
@@ -816,7 +131,7 @@ const KARN = {
 const A_MOVES = [[3,0], [-3,0], [0,3], [0,-3], [3,3],
     [2,-1], [-1,2], [-4,-1], [-1,-4], [2,-4], [2,2], [-1,-1], [5,-1]];
 const a_MOVES = [[3,0], [-3,0], [0,3], [0,-3], [3,3],
-    [-2,1], [1,-2], [4,1], [1,4], [-2,4], [-2,-2], [1,1] [-5,1]];
+    [-2,1], [1,-2], [4,1], [1,4], [-2,4], [-2,-2], [1,1], [-5,1]];
 // TODO: add more moves?
 const KARNL = a_MOVES.length;
 const HIGHKARN = {
@@ -867,8 +182,10 @@ const OPTIM = {
     // longest first
     "/3,3/3,3/": "-3,-3/-3,-3",
     "/-3,-3/-3,-3/": "3,3/3,3",
-    "/2,2/-2,-2/": "2,2/-2-2",
-    "/-2,-2/2,2/": "-2,-2/2,2"
+    "/2,2/-2,-2/": "2,2/-2,-2",
+    "/-2,-2/2,2/": "-2,-2/2,2",
+    "/1,1/-1,-1/": "1,1/-1,-1",
+    "/-1,-1/1,1/": "-1,-1/1,1"
 }
 
 const OPTIM_KEYS = Array.from(Object.keys(OPTIM)); // array of keys
@@ -880,11 +197,11 @@ function isOBL(layer, obl) {
     let target = OBL[obl];
     // if it's top misalign, change to bottom misalign
     if (layer.charAt(0).toUpperCase() !== layer.charAt(0)) layer = shift(layer,-1);
-    for (let move = 1; move <= 3; move++) {
+    for (let move = 0; move <= 3; move++) {
         if (target === shift(layer, 3*move)) return true;
     }
     layer = layer_flip(layer);
-    for (let move = 1; move <= 3; move++) {
+    for (let move = 0; move <= 3; move++) {
         if (target === shift(layer, 3*move)) return true;
     }
     return false;
@@ -892,16 +209,11 @@ function isOBL(layer, obl) {
 
 function randAMove() {
     // return: element of A_MOVES
-    // console.log(A_MOVES)
-    // console.log(JSON.stringify(A_MOVES))
-    // console.log(JSON.parse(JSON.stringify(A_MOVES)))
-    // console.log(JSON.parse(JSON.stringify(A_MOVES)))
     return JSON.parse(JSON.stringify(A_MOVES))[randInt(0,KARNL-1)];
 }
 
 function randaMove() {
     // return: element of a_MOVES
-    // console.log(JSON.parse(JSON.stringify(a_MOVES)))
     return JSON.parse(JSON.stringify(a_MOVES))[randInt(0,KARNL-1)];
 }
 
@@ -969,7 +281,8 @@ function karnify(scramble) {
     scramble = scramble.split("/");
     // first level karnify; skip the A and a
     for (let i = 1; i < scramble.length-1; i++) {
-        scramble[i] = KARN[scramble[i]]
+        if (scramble[i] in KARN) scramble[i] = KARN[scramble[i]];
+        else {scramble[i] = scramble[i].replace(",", "")}
     }
     console.log(scramble)
     // second level karnify
@@ -1005,7 +318,6 @@ function optimize(scramble) { // TODO: no more merge?
         //optimize needed
         // console.log("optimizing");
         let moves = scramble.split("/");
-        console.log(moves);
         // moves now in ["A","3,-3", "3,0", "a"]
         let atSlice = 0; // the index of the next move in "moves"
         let cycleCompleted = false;
@@ -1029,9 +341,7 @@ function optimize(scramble) { // TODO: no more merge?
                         }
                         // else no change
                         // now we add the end move to the next move
-                        console.log(atSlice+optimableSlice.length-1);
                         moves[atSlice+optimableSlice.length-2] = addMoves(moves[atSlice+optimableSlice.length-2], optimTo.pop());
-                        console.log(moves);
                     }
                     else if (atSlice + optimableSlice.length -1 === moves.length) {
                         // -1 cuz it starts&ends with slice
@@ -1049,7 +359,6 @@ function optimize(scramble) { // TODO: no more merge?
                     }
                     // now optimTo has the two merged moves removed
                     moves.splice(atSlice, delSliceNum, ...optimTo);
-                    console.log(moves);
                     scramble = moves.join("/")
                     cycleCompleted = true;
                     break;
@@ -1082,27 +391,25 @@ function getScramble(obl) {
             state = SLICE_a;
         }
         // first 5 slices
-        // since the check happens post move, here we only do 4 slices + initial slice = 5
-        for (let i = 1; i < 5; i++) {
+        for (let i = 2; i < 6; i++) {
             abf = topA ? randAMove() : randaMove();
             state = slice(move(state, abf[0], abf[1]));
             moves += `${abf[0]},${abf[1]}/`
             if (changesAlignment(abf[0])) topA = !topA;
         }
         // slice 6-10
-        for (let i = 5; i <= 10; i++){
+        for (let i = 6; i <= 10; i++){
             abf = topA ? randAMove() : randaMove();
             // console.log(topA, abf, moves)
             state = slice(move(state, abf[0], abf[1]));
             moves += `${abf[0]},${abf[1]}/`
             if (changesAlignment(abf[0])) topA = !topA;
             // includes check for layer flip
-            if (isOBL(state.slice(0,LAYERL), u)) console.log("left knight", state.slice(0,LAYERL));
-            if (isOBL(state.slice(0,LAYERL), d)) console.log("gem", state.slice(0,LAYERL));
             if ((isOBL(state.slice(0,LAYERL), u) &&
                 isOBL(state.slice(LAYERL), d)) ||
                 (isOBL(state.slice(0,LAYERL), d) &&
                 isOBL(state.slice(LAYERL), u))) {
+                console.log(moves)
                 currentA = topA ? "A" : "a";
                 moves += currentA;
                 moves = optimize(moves);
@@ -1728,28 +1035,6 @@ function validName(n) {
     return true;
 }
 
-// function openScramblePopup(scramble) {
-//     if (usingTimer()) return;
-//     isPopupOpen = true;
-//     scramblePopupEl.classList.add("open");
-
-//     // Change canvas size
-//     const w = canvasWrapperEl.offsetWidth;
-//     const h = canvasWrapperEl.offsetHeight;
-
-//     canvas.width = w;
-//     canvas.height = h;
-//     cubeCenter = new Point(parseInt(w / 2), parseInt(h / 2));
-//     cubeScale = parseInt(w / 7);
-
-//     let displayCube = new Cube(solved);
-//     displayCube.applySequence(new Sequence(scramble));
-//     displayCube.draw(cubeCenter, cubeScale);
-
-//     displayScramEl.textContent = scramble;
-//     displayOBLname.textContent = displayCube.OBLCase();
-// }
-
 function openListPopup() {
     if (usingTimer()) return;
     isPopupOpen = true;
@@ -1852,7 +1137,7 @@ prevScrambleButton.addEventListener("click", () => {
     if (scrambleList.at(-2-scrambleOffset) !== undefined) {
         // we have a prev scram to display
         previousScrambleEl.textContent = "Previous scramble : " + 
-        scrambleList.at(-2-scrambleOffset)[usingKarn];
+            scrambleList.at(-2-scrambleOffset)[usingKarn];
     }
 });
 
@@ -1866,7 +1151,8 @@ nextScrambleButton.addEventListener("click", () => {
     } else {
         currentScrambleEl.textContent =
             scrambleList.at(-1-scrambleOffset)[usingKarn];
-        previousScrambleEl.textContent = scrambleList.at(-2-scrambleOffset)[usingKarn];
+        previousScrambleEl.textContent = "Previous scramble : " + 
+            scrambleList.at(-2-scrambleOffset)[usingKarn];
     }
 });
 
