@@ -802,6 +802,7 @@ const KARN = {
     "-1,-4":"f'",
     "2,-4":"T",
     "2,2":"m",
+    "-1,-1": "M'",
     "5,-1":"u2",
     "-2,1":"u'",
     "1,-2":"d'",
@@ -809,12 +810,14 @@ const KARN = {
     "1,4":"f",
     "-2,4":"T'",
     "-2,-2":"m'",
+    "1,1": "M",
     "-5,1": "u2'"
 };
 const A_MOVES = [[3,0], [-3,0], [0,3], [0,-3], [3,3],
-    [2,-1], [-1,2], [-4,-1], [-1,-4], [2,-4], [2,2], [5,-1]];
+    [2,-1], [-1,2], [-4,-1], [-1,-4], [2,-4], [2,2], [-1,-1], [5,-1]];
 const a_MOVES = [[3,0], [-3,0], [0,3], [0,-3], [3,3],
-    [-2,1], [1,-2], [4,1], [1,4], [-2,4], [-2,-2], [-5,1]];
+    [-2,1], [1,-2], [4,1], [1,4], [-2,4], [-2,-2], [1,1] [-5,1]];
+// TODO: add more moves?
 const KARNL = a_MOVES.length;
 const HIGHKARN = {
     // add spaces for de-ambiguity
@@ -861,14 +864,14 @@ const HIGHKARN = {
 // if the following moves accur, replace them with optimized ones
 // UPDATE THIS
 const OPTIM = {
+    // longest first
     "/3,3/3,3/": "-3,-3/-3,-3",
-    "/-3,-3/-3,-3/": "3,3/3,3"
+    "/-3,-3/-3,-3/": "3,3/3,3",
+    "/2,2/-2,-2/": "2,2/-2-2",
+    "/-2,-2/2,2/": "-2,-2/2,2"
 }
 
-const OPTIMMAP2 = new Map([
-    // moves in arrays: merge?, moves, merge?
-    [[[3,3], [3,3]], [true, [-3,-3], [-3,-3], true]]
-])
+const OPTIM_KEYS = Array.from(Object.keys(OPTIM)); // array of keys
 
 function isOBL(layer, obl) {
     // layer: 12-char string w/ BbWw, in cs
@@ -888,7 +891,7 @@ function isOBL(layer, obl) {
 }
 
 function randAMove() {
-    // return: key of A_MOVES
+    // return: element of A_MOVES
     // console.log(A_MOVES)
     // console.log(JSON.stringify(A_MOVES))
     // console.log(JSON.parse(JSON.stringify(A_MOVES)))
@@ -897,7 +900,7 @@ function randAMove() {
 }
 
 function randaMove() {
-    // return: key of a_MOVES
+    // return: element of a_MOVES
     // console.log(JSON.parse(JSON.stringify(a_MOVES)))
     return JSON.parse(JSON.stringify(a_MOVES))[randInt(0,KARNL-1)];
 }
@@ -975,46 +978,95 @@ function karnify(scramble) {
     return scramble
 }
 
-function optimize(scramble) {
+function legalMove(move) {
+    // move: (int) -10 ~ 12 (i think)
+    // returns: -5 ~ 6
+    if (move < -5) {
+        return move + 12;
+    }
+    else if (move > 6) {
+        return move - 12;
+    }
+    return move;
+}
+
+function addMoves(move1, move2) {
+    // move1/2: "3,-3"
+    move1 = move1.split(",");
+    move2 = move2.split(",");
+    result = [legalMove(parseInt(move1[0],10) + parseInt(move2[0],10)),
+                legalMove(parseInt(move1[1],10) + parseInt(move2[1],10))];
+    return result.join(",");
+}
+
+function optimize(scramble) { // TODO: no more merge?
+    // scramble: "A/-3,-3/0,3/0,-3/-1,-4/-3,0/3,0/0,-3/0,3/a"
     while (replaceWithDict(scramble, OPTIM) !== scramble) {
         //optimize needed
         // console.log("optimizing");
         let moves = scramble.split("/");
-        for (let i = 1; i < moves.length -1; i++) {
-            moves[i] = moves[i].split(",");
-            moves[i][0] = parseInt(moves[i][0], 10);
-            moves[i][1] = parseInt(moves[i][1], 10);
-        }
-        // moves now in ["A", [3, -3], [3, 0], "a"]
-        // CHANGE THIS IF MORE OPTIM
-        let optimable = Array.from(OPTIMMAP2.keys());
-        let lenOptim = 2;
-        for (let i = 1; i < moves.length - lenOptim; i++) {
-            for (let optseq of optimable) {
-                // for each optimable sequence; [[3,3], [3,3]]
-                for (let j = 0; j < lenOptim; j++) {
-                    // for each move in them
-                    if (JSON.stringify(moves[1+j]) !== JSON.stringify(optseq[j])) break;
-                    if (j === lenOptim-1) {
-                        // match
-                        target = OPTIMMAP2[optseq]; // [merge?, [3,3], [3,3], merge?]
-                        // need to check if we are at the start, then check mod alignment? and change A
-                        
+        console.log(moves);
+        // moves now in ["A","3,-3", "3,0", "a"]
+        let atSlice = 0; // the index of the next move in "moves"
+        let cycleCompleted = false;
+        for (let i = 0; i < scramble.length; i++) {
+            // going over every character of scramble
+            if (cycleCompleted) break;
+            if (scramble.at(i) !== "/") continue;
+            atSlice++;
+            for (let optimable of OPTIM_KEYS) {
+                // avoid getting the last "a" also
+                if (scramble.length - 1-i < optimable.length) continue;
+                if (scramble.slice(i, i+optimable.length) === optimable) {
+                    // match!!
+                    let optimableSlice = optimable.split("/");
+                    let optimTo = OPTIM[optimable].split("/"); // no slice at beginning/end
+                    let delSliceNum = optimableSlice.length - optimTo.length;
+                    if (atSlice === 1) {
+                        // we at the beginning; not at the end
+                        if (changesAlignment(optimTo.shift().split(",")[0])) {
+                            moves[0] = moves[0] === "a" ? "A" : "a";
+                        }
+                        // else no change
+                        // now we add the end move to the next move
+                        console.log(atSlice+optimableSlice.length-1);
+                        moves[atSlice+optimableSlice.length-2] = addMoves(moves[atSlice+optimableSlice.length-2], optimTo.pop());
+                        console.log(moves);
                     }
+                    else if (atSlice + optimableSlice.length -1 === moves.length) {
+                        // -1 cuz it starts&ends with slice
+                        // we at the end; not at the beginning
+                        if (changesAlignment(optimTo.pop().split(",")[0])) {
+                            moves.at(-1) = moves.at(-1) === "a" ? "A" : "a";
+                        }
+                        // else no change
+                        // now we add the first move to the previous move
+                        moves[atSlice-1] = addMoves(moves[atSlice-1], optimTo.shift());
+                    }
+                    else {
+                        moves[atSlice-1] = addMoves(moves[atSlice-1], optimTo.shift());
+                        moves[atSlice+optimableSlice.length-2] = addMoves(moves[atSlice+optimableSlice.length-2], optimTo.pop());
+                    }
+                    // now optimTo has the two merged moves removed
+                    moves.splice(atSlice, delSliceNum, ...optimTo);
+                    console.log(moves);
+                    scramble = moves.join("/")
+                    cycleCompleted = true;
+                    break;
                 }
             }
         }
-    };
+    }
+    return scramble;
 }
 
-function getScramble(obl, karn) {
+function getScramble(obl) {
     // obl: e.g. "left gem/knight"
-    // return: e.g."A/-3,-3/0,3/0,-3/-1,-4/-3,0/3,0/0,-3/0,3/a" or in karn
+    // return: e.g. ["A/-3,-3/0,3/0,-3/-1,-4/-3,0/3,0/0,-3/0,3/a", in karn]
     let moves = "";
     let abf;
     let topA; // bool: top misalign?
     let [u, d] = obl.split("/");
-    console.log(u,d);
     let state;
     while (true) {
         if (Math.random() < 0.5) {
@@ -1053,16 +1105,15 @@ function getScramble(obl, karn) {
                 isOBL(state.slice(LAYERL), u))) {
                 currentA = topA ? "A" : "a";
                 moves += currentA;
-                // moves = optimize(moves);
-                if (karn) {moves = karnify(moves)};
-                return moves;
+                moves = optimize(moves);
+                return [moves, karnify(moves)];
             }
         }
         moves = "";
     }
 }
 
-// console.log(getScramble("4e/4e", true))
+// console.log(getScramble("4e/4e"))
 
 // Variables
 let possibleOBL = [
@@ -1142,13 +1193,13 @@ let possibleOBL = [
     ["bad", "tie", "tie"]
 ];
 let selectedOBL = [];
-let scrambleList = [];
+let scrambleList = []; // [[normal, karn], etc.]
 
 let previousScramble = null;
 
 let remainingOBL = [];
 let eachCase = 0; // 0 = random, n = get each case n times before moving on
-let usingKarn = false;
+let usingKarn = 0; // 0 = not using karn, etc.
 const MIN_EACHCASE = 2;
 const MAX_EACHCASE = 4;
 
@@ -1158,7 +1209,6 @@ let highlightedList = null;
 
 let scrambleOffset = 0;
 let hasActiveScramble = false;
-let hasPreviousScramble = false;
 let isPopupOpen = false;
 
 let cubeCenter, cubeScale;
@@ -1419,33 +1469,6 @@ function passesFilter(obl, filter) {
     return result_from_good_bad || result_from_non_good_bad;
 }
 
-function formatScramble(scramble) {
-    // Add random begin and end layer moves
-    let s = scramble[0];
-    let e = scramble[scramble.length - 1];
-    let start;
-    let end;
-    // if karn sep = "" else sep = ","
-    let sep = usingKarn ? "" : ","
-    if (s == "A") {
-        start = `${randrange(-5, 5, 3)}${sep}${randrange(-3, 7, 3)}`;
-    } else {
-        start = `${randrange(-3, 7, 3)}${sep}${randrange(-4, 6, 3)}`;
-    }
-    if (e == "A") {
-        end = `${randrange(-4, 6, 3)}${sep}${randrange(-3, 7, 3)}`;
-    } else {
-        end = `${randrange(-3, 7, 3)}${sep}${randrange(-5, 5, 3)}`;
-    }
-
-    let final = (
-        start +
-        scramble.slice(1, scramble.length - 1) +
-        end
-    ).replaceAll("/", " / ");
-    return final;
-}
-
 function generateScramble() {
     scrambleOffset = 0;
     if (selectedOBL.length === 0) {
@@ -1469,19 +1492,45 @@ function generateScramble() {
     }
 
     // selectedOBL should be a list of the OBL ids
-    scramble = formatScramble(getScramble(OBLChoice, usingKarn));
+    scramble = getScramble(OBLChoice);
+
+    // Add random begin and end layer moves
+    let s = scramble[0][0];
+    let e = scramble[0][scramble.length - 1];
+    let start;
+    let end;
+    // if karn sep = "" else sep = ","
+    let sep = usingKarn ? "" : ","
+    if (s == "A") {
+        start = [randrange(-5, 5, 3),randrange(-3, 7, 3)];
+    } else {
+        start = [randrange(-3, 7, 3),randrange(-4, 6, 3)];
+    }
+    if (e == "A") {
+        end = [randrange(-4, 6, 3),randrange(-3, 7, 3)];
+    } else {
+        end = [randrange(-3, 7, 3),randrange(-5, 5, 3)];
+    }
+
+    let final = [
+        (start.join(",") + 
+            scramble[0].slice(1, scramble.length - 1) + 
+            end.join(",")).replaceAll("/", " / "),
+        (start.join("") + 
+            scramble[1].slice(1, scramble.length - 1) + 
+            end.join("")).replaceAll("/", " / "),
+    ];
 
     if (scrambleList.length != 0) {
-        previousScramble = scrambleList[scrambleList.length - 1];
+        previousScramble = scrambleList.at(-1)[usingKarn];
         previousScrambleEl.textContent =
             "Previous scramble : " + previousScramble;
-        hasPreviousScramble = true;
     }
     if (!hasActiveScramble) {
         timerEl.textContent = "0.00";
     }
-    currentScrambleEl.textContent = scramble;
-    scrambleList.push(scramble);
+    currentScrambleEl.textContent = final[usingKarn];
+    scrambleList.push(final);
     hasActiveScramble = true;
 }
 
@@ -1798,7 +1847,12 @@ prevScrambleButton.addEventListener("click", () => {
     if (scrambleList.length == 0) return;
     scrambleOffset = Math.min(scrambleOffset + 1, scrambleList.length - 1);
     currentScrambleEl.textContent =
-        scrambleList[scrambleList.length - 1 - scrambleOffset];
+        scrambleList.at(-1-scrambleOffset)[usingKarn];
+    if (scrambleList.at(-2-scrambleOffset) !== undefined) {
+        // we have a prev scram to display
+        previousScrambleEl.textContent = "Previous scramble : " + 
+        scrambleList.at(-2-scrambleOffset)[usingKarn];
+    }
 });
 
 nextScrambleButton.addEventListener("click", () => {
@@ -1810,7 +1864,8 @@ nextScrambleButton.addEventListener("click", () => {
         generateScramble();
     } else {
         currentScrambleEl.textContent =
-            scrambleList[scrambleList.length - 1 - scrambleOffset];
+            scrambleList.at(-1-scrambleOffset)[usingKarn];
+        previousScrambleEl.textContent = scrambleList.at(-2-scrambleOffset)[usingKarn];
     }
 });
 
@@ -1998,7 +2053,6 @@ fileEl.addEventListener("change", (e) => {
     reader.readAsText(file);
 });
 
-//PLACE OF INTEREST
 eachCaseEl.addEventListener("change", (e) => {
     eachCase = eachCaseEl.checked ? 1 : randInt(MIN_EACHCASE, MAX_EACHCASE);
     if (eachCase == 1) {
@@ -2007,22 +2061,13 @@ eachCaseEl.addEventListener("change", (e) => {
 });
 
 karnEl.addEventListener("change", (e) => {
-    usingKarn = !usingKarn;
-    if (usingKarn) {
-        // karnify scram
-        let scramble = currentScrambleEl.textContent.split("/"); // ["-3,5 ", " -4,1 ", " -1,0"]
-        let start = scramble.shift();
-        let end = scramble.pop();
-        // now scramble only has the middle stuff
-        for (let i = 0; i < scramble.length; i++) {
-            // get rid of spaces
-            scramble[i] = scramble[i].slice(1,-1);
-        }
-        scramble = scramble.join("/");
-        scramble = changesAlignment(start.split(",")[0]) ? "A/"+scramble : "a/"+scramble;
-        scramble += changesAlignment(end.split(",")[1]) ? "/a" : "/A";
-        scramble = formatScramble(karnify(scramble));
-        currentScrambleEl.textContent = scramble;
+    // TODO
+    usingKarn ^= 1; // switches between 0 and 1 with XOR
+    currentScrambleEl.textContent = scrambleList.at(-1-scrambleOffset)[usingKarn];
+    if (scrambleList.at(-2-scrambleOffset) !== undefined) {
+        // we have a prev scram to display
+        previousScrambleEl.textContent = "Previous scramble : " + 
+        scrambleList.at(-2-scrambleOffset)[usingKarn];
     }
 });
 
@@ -2030,3 +2075,6 @@ karnEl.addEventListener("change", (e) => {
 for (let cross of document.querySelectorAll(".cross")) {
     cross.addEventListener("click", () => closePopup());
 }
+
+
+
