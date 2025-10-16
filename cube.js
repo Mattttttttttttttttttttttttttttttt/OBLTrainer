@@ -1493,20 +1493,19 @@ function generateScramble() {
 
     // selectedOBL should be a list of the OBL ids
     scramble = getScramble(OBLChoice);
+    console.log(scramble, " scramble");
 
     // Add random begin and end layer moves
-    let s = scramble[0][0];
-    let e = scramble[0][scramble.length - 1];
+    let s = scramble[0].at(0);
+    let e = scramble[0].at(-1);
     let start;
     let end;
-    // if karn sep = "" else sep = ","
-    let sep = usingKarn ? "" : ","
-    if (s == "A") {
+    if (s === "A") {
         start = [randrange(-5, 5, 3),randrange(-3, 7, 3)];
     } else {
         start = [randrange(-3, 7, 3),randrange(-4, 6, 3)];
     }
-    if (e == "A") {
+    if (e === "A") {
         end = [randrange(-4, 6, 3),randrange(-3, 7, 3)];
     } else {
         end = [randrange(-3, 7, 3),randrange(-5, 5, 3)];
@@ -1514,12 +1513,14 @@ function generateScramble() {
 
     let final = [
         (start.join(",") + 
-            scramble[0].slice(1, scramble.length - 1) + 
+            scramble[0].slice(1, -1) + 
             end.join(",")).replaceAll("/", " / "),
         (start.join("") + 
-            scramble[1].slice(1, scramble.length - 1) + 
+            scramble[1].slice(1, -1) + 
             end.join("")).replaceAll("/", " / "),
     ];
+
+    console.log(final, " final");
 
     if (scrambleList.length != 0) {
         previousScramble = scrambleList.at(-1)[usingKarn];
