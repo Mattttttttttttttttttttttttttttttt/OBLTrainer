@@ -712,7 +712,7 @@ function getLocalStorageData() {
 
 function saveSelectedOBL() {
     localStorage.setItem("selectedOBL", JSON.stringify(selectedOBL));
-    if (!hasActiveScramble || selectedOBL.length == 0) generateScramble();
+    if (!hasActiveScramble || selectedOBL.length !== 0) generateScramble(); // see if this works TODO
 }
 
 function saveUserLists() {
@@ -1074,6 +1074,7 @@ function selectList(listName, setSelection) {
     }
     if (setSelection) {
         for (let [obl, inlist] of Object.entries(list)) {
+            console.log(obl,inlist);
             if (inlist) {
                 showOBL(obl);
                 selectOBL(obl);
@@ -1086,6 +1087,7 @@ function selectList(listName, setSelection) {
         saveSelectedOBL();
     } else {
         for (let [obl, inlist] of Object.entries(list)) {
+            console.log(obl,inlist);
             if (inlist) {
                 showOBL(obl);
             } else {
@@ -1284,7 +1286,7 @@ selectListEl.addEventListener("click", () => {
         return;
     }
     selectList(highlightedList, false);
-    closePopup();
+    closePopup(); // TODO: this is not working
 });
 
 deleteListEl.addEventListener("click", () => {
