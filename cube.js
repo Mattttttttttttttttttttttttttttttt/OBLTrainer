@@ -281,14 +281,12 @@ function changesAlignment(move) {
 function karnify(scramble) {
     // scramble: e.g. "A/-3,0/-1,2/1,-2/-1,2/3,3/-2,-2/3,3/-3,0/-1,2/3,3/3,3/-2,4/A"
     // returns "A U' d3 e m' e U' d e e T' A"
-    console.log(scramble);
     scramble = scramble.split("/");
     // first level karnify; skip the A and a
     for (let i = 1; i < scramble.length-1; i++) {
         if (scramble[i] in KARN) scramble[i] = KARN[scramble[i]];
         else {scramble[i] = scramble[i].replace(",", "")}
     }
-    console.log(scramble)
     // second level karnify
     scramble = scramble.join(" ")
     scramble = replaceWithDict(scramble, HIGHKARN)
@@ -320,7 +318,6 @@ function optimize(scramble) {
     // scramble: "A/-3,-3/0,3/0,-3/-1,-4/-3,0/3,0/0,-3/0,3/a"
     while (replaceWithDict(scramble, OPTIM) !== scramble) {
         //optimize needed
-        // console.log("optimizing");
         let moves = scramble.split("/");
         // moves now in ["A","3,-3", "3,0", "a"]
         let atSlice = 0; // the index of the next move in "moves"
@@ -404,7 +401,6 @@ function getScramble(obl) {
         // slice 6-10
         for (let i = 6; i <= 10; i++){
             abf = topA ? randAMove() : randaMove();
-            // console.log(topA, abf, moves)
             state = slice(move(state, abf[0], abf[1]));
             moves += `${abf[0]},${abf[1]}/`
             if (changesAlignment(abf[0])) topA = !topA;
@@ -423,8 +419,6 @@ function getScramble(obl) {
         moves = "";
     }
 }
-
-// console.log(getScramble("4e/4e"))
 
 // Variables
 let possibleOBL = [
@@ -870,26 +864,19 @@ function generateScramble() {
         scrambleList = [];
         return;
     }
-    if (eachCase > 0) {
-        if (remainingOBL.length === 0) {
-            let number = eachCaseEl.checked
-                ? 1
-                : randInt(MIN_EACHCASE, MAX_EACHCASE);
-            enableGoEachCase(number);
-        }
-        let caseNum = randInt(0, remainingOBL.length - 1);
-        OBLChoice = remainingOBL.splice(caseNum, 1);
-        console.log("line796: OBLChoice: ", OBLChoice);
-        } else {
-        // selectedOBL should be a list of the OBL ids
-        OBLChoice = selectedOBL[randInt(0, selectedOBL.length - 1)];
-        console.log("line 798, does this ever happen?")
+    if (remainingOBL.length === 0) {
+        // start a new cycle
+        let number = eachCaseEl.checked
+            ? 1
+            : randInt(MIN_EACHCASE, MAX_EACHCASE);
+        enableGoEachCase(number);
     }
+    let caseNum = randInt(0, remainingOBL.length - 1);
+    OBLChoice = remainingOBL.splice(caseNum, 1);
 
     OBLChoice = OBLtranslation[OBLChoice];
     OBLChoice = OBLChoice[randInt(0, OBLChoice.length - 1)];
     scramble = getScramble(OBLChoice);
-    console.log(scramble, " scramble");
 
     // Add random begin and end layer moves
     let s = scramble[0].at(0);
@@ -915,8 +902,6 @@ function generateScramble() {
             scramble[1].slice(1, -1) + 
             end.join("")).replaceAll("/", " / "),
     ];
-
-    console.log(final, " final");
 
     if (scrambleList.length != 0) {
         previousScramble = scrambleList.at(-1)[usingKarn];
