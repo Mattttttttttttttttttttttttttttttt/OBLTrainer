@@ -168,7 +168,15 @@ const HIGHKARN = {
     "U U ": "UU ",
     "U' U' ": "UU' ",
     "D D ": "DD ",
-    "D' D' ": "DD' "
+    "D' D' ": "DD' ",
+
+    "60 ": "U2 ",
+    "63 ": "U2D ",
+    "6-3 ": "U2D' ",
+    "66 ": "U2D2 ",
+    "06 ": "D2 ",
+    "36 ": "UD2",
+    "-36 ": "U'D2"
 };
 // if the following moves accur, replace them with optimized ones
 // UPDATE THIS
