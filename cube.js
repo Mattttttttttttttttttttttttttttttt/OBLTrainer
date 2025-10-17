@@ -154,7 +154,7 @@ const HIGHKARN = {
 
     "U U' ": "W ",
     "U' U ": "W' ",
-    "D D' ": "B" ,
+    "D D' ": "B ",
     "D' D ": "B' ",
     "u u' ": "w ",
     "u' u ": "w' ",
