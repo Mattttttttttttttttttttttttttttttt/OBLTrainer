@@ -403,6 +403,11 @@ button:hover {
     align-items: center;
 }
 
+.help p {
+    margin-left: 50px;
+    font-size: 1.5v*;
+}
+
 @media screen and (max-width: 800px) {
     .popup-inner {
         width: 100%;

@@ -1281,7 +1281,7 @@ openListsEl.addEventListener("click", () => {
 
 openHelpEl.addEventListener("click", () => {
     if (usingTimer()) return;
-    openListPopup();
+    openHelpPopup();
 })
 
 newListEl.addEventListener("click", () => {
