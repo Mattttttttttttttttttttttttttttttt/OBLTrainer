@@ -1156,7 +1156,7 @@ function openListPopup() {
 function openHelpPopup() {
     if (isPopupOpen === false) {
         isPopupOpen = true;
-        listPopupEl.classList.add("open");
+        helpPopupEl.classList.add("open");
     }
 }
 
