@@ -816,6 +816,7 @@ function checkFirstWord(word, g, filter, u, d) {
 
 function passesFilter(obl, filter) {
     // obl is the standardized string
+    if (filter === "") return true;
     let g = obl[0];
     let u = obl[1].toLowerCase();
     let d = obl[2].toLowerCase();
