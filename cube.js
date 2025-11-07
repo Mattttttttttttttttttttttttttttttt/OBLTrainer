@@ -341,7 +341,7 @@ function optimize(scramble) {
                     // match!!
                     let optimableLen = optimable.split("/").length;
                     let optimTo = OPTIM[optimable].split("/"); // no slice at beginning/end
-                    let delSliceNum = optimableLen - optimTo.length;
+                    let delSliceNum = optimableLen - 2;
                     if (atSlice === 1) {
                         // we at the beginning; not at the end
                         if (changesAlignment(optimTo.shift().split(",")[0])) {
@@ -1556,6 +1556,7 @@ karnEl.addEventListener("change", (e) => {
 for (let cross of document.querySelectorAll(".cross")) {
     cross.addEventListener("click", () => closePopup());
 }
+
 
 
 
