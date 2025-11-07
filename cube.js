@@ -41,9 +41,11 @@ function shuffle(array) {
 }
 
 function replaceWithDict(str, dict) {
-  // keys are already sorted longest → shortest
-  const pattern = new RegExp(Object.keys(dict).join("|"), "g");
-  return str.replace(pattern, match => dict[match]);
+    // keys are already sorted longest → shortest
+    const pattern = new RegExp(Object.keys(dict).join("|"), "g");
+    while (str.replace(pattern, match => dict[match]) !== str)
+        str = str.replace(pattern, match => dict[match]);
+    return str;
 }
 
 
@@ -130,53 +132,53 @@ const a_MOVES = [[3,0], [-3,0], [0,3], [0,-3], [3,3],
 const KARNL = a_MOVES.length;
 const HIGHKARN = {
     // add spaces for de-ambiguity
-    "U U' U U' ": "U4 ",
-    "U' U U' U ": "U4' ",
-    "D D' D D' ": "D4 ",
-    "D' D D' D ": "D4' ",
-    "u u' u u' ": "u4 ",
-    "u' u u' u ": "u4' ",
-    "d d' d d' ": "d4 ",
-    "d' d d' d ": "d4' ",
+    " U U' U U' ": " U4 ",
+    " U' U U' U ": " U4' ",
+    " D D' D D' ": " D4 ",
+    " D' D D' D ": " D4' ",
+    " u u' u u' ": " u4 ",
+    " u' u u' u ": " u4' ",
+    " d d' d d' ": " d4 ",
+    " d' d d' d ": " d4' ",
 
-    "U U' U ": "U3 ",
-    "U' U U' ": "U3' ",
-    "D D' D ": "D3 ",
-    "D' D D' ": "D3' ",
-    "u u' u ": "u3 ",
-    "u' u u' ": "u3' ",
-    "d d' d ": "d3 ",
-    "d' d d' ": "d3' ",
-    "F F' F ": "F3 ",
-    "F' F F' ": "F3' ",
-    "f f' f ": "f3 ",
-    "f' f f' ": "f3' ",
+    " U U' U ": " U3 ",
+    " U' U U' ": " U3' ",
+    " D D' D ": " D3 ",
+    " D' D D' ": " D3' ",
+    " u u' u ": " u3 ",
+    " u' u u' ": " u3' ",
+    " d d' d ": " d3 ",
+    " d' d d' ": " d3' ",
+    " F F' F ": " F3 ",
+    " F' F F' ": " F3' ",
+    " f f' f ": " f3 ",
+    " f' f f' ": " f3' ",
 
-    "U U' ": "W ",
-    "U' U ": "W' ",
-    "D D' ": "B ",
-    "D' D ": "B' ",
-    "u u' ": "w ",
-    "u' u ": "w' ",
-    "d d' ": "b ",
-    "d' d ": "b' ",
-    "F F' ": "F2 ",
-    "F' F ": "F2' ",
-    "f f' ": "f2 ",
-    "f' f ": "f2' ",
+    " U U' ": " W ",
+    " U' U ": " W' ",
+    " D D' ": " B ",
+    " D' D ": " B' ",
+    " u u' ": " w ",
+    " u' u ": " w' ",
+    " d d' ": " b ",
+    " d' d ": " b' ",
+    " F F' ": " F2 ",
+    " F' F ": " F2' ",
+    " f f' ": " f2 ",
+    " f' f ": " f2' ",
 
-    "U U ": "UU ",
-    "U' U' ": "UU' ",
-    "D D ": "DD ",
-    "D' D' ": "DD' ",
+    " U U ": " UU ",
+    " U' U' ": " UU' ",
+    " D D ": " DD ",
+    " D' D' ": " DD' ",
 
-    "60 ": "U2 ",
-    "63 ": "U2D ",
-    "6-3 ": "U2D' ",
-    "66 ": "U2D2 ",
-    "06 ": "D2 ",
-    "36 ": "UD2",
-    "-36 ": "U'D2"
+    " 60 ": " U2 ",
+    " 63 ": " U2D ",
+    " 6-3 ": " U2D' ",
+    " 66 ": " U2D2 ",
+    " 06 ": " D2 ",
+    " 36 ": " UD2",
+    " -36 ": " U'D2"
 };
 // if the following moves accur, replace them with optimized ones
 // UPDATE THIS
@@ -1478,6 +1480,7 @@ karnEl.addEventListener("change", (e) => {
 for (let cross of document.querySelectorAll(".cross")) {
     cross.addEventListener("click", () => closePopup());
 }
+
 
 
 
