@@ -90,7 +90,8 @@ OBL = {"1c": "BBwWWwWWwWWw",
        "black tie": "WWbBBbWWwBBw",
        "white tie": "BBwWWwBBbWWb",
        "left yoshi": "BBbWWwBBwWWw",
-       "right yoshi": "WWwBBwWWbBBw"}
+       "right yoshi": "WWwBBwWWbBBw"
+}
 
 // format is 16-character string, both corner first
 const CUBEL = 24;
@@ -452,8 +453,8 @@ let possibleOBL = [
     ["bad", "knight", "knight"],
     ["good", "knight", "axe"],
     ["bad", "knight", "axe"],
-    ["good", "axe", "axe"],
-    ["bad", "axe", "axe"],
+    ["same", "axe", "axe"],
+    ["diff", "axe", "axe"],
     ["", "squid", "knight"],
     ["", "squid", "axe"],
     ["", "squid", "squid"],
@@ -474,8 +475,8 @@ let possibleOBL = [
     ["good", "yoshi", "bird"],
     ["bad", "yoshi", "bird"],
     ["", "yoshi", "hazard"],
-    ["good", "yoshi", "yoshi"],
-    ["bad", "yoshi", "yoshi"],
+    ["same", "yoshi", "yoshi"],
+    ["diff", "yoshi", "yoshi"],
     ["good", "kite", "kite"],
     ["bad", "kite", "kite"],
     ["good", "kite", "cut"],
@@ -528,8 +529,8 @@ let OBLtranslation = {
     "bad knight/knight": ["left knight/left knight", "right knight/right knight"],
     "good knight/axe": ["left knight/left axe", "right knight/right axe"],
     "bad knight/axe": ["left knight/right axe", "right knight/left axe"],
-    "good axe/axe": ["left axe/left axe", "right axe/right axe"],
-    "bad axe/axe": ["left axe/right axe"],
+    "same axe/axe": ["left axe/left axe", "right axe/right axe"],
+    "diff axe/axe": ["left axe/right axe"],
     "squid/knight": ["squid/left knight", "squid/right knight"],
     "squid/axe": ["squid/left axe", "squid/right axe"],
     "squid/squid": ["squid/squid"],
@@ -550,8 +551,8 @@ let OBLtranslation = {
     "good yoshi/bird": ["left yoshi/left bird", "right yoshi/right bird"],
     "bad yoshi/bird": ["left yoshi/right bird", "right yoshi/left bird"],
     "yoshi/hazard": ["left yoshi/hazard", "right yoshi/hazard"],
-    "good yoshi/yoshi": ["left yoshi/left yoshi", "right yoshi/right yoshi"],
-    "bad yoshi/yoshi": ["left yoshi/right yoshi"],
+    "same yoshi/yoshi": ["left yoshi/left yoshi", "right yoshi/right yoshi"],
+    "diff yoshi/yoshi": ["left yoshi/right yoshi"],
     "good kite/kite": ["left kite/left kite", "right kite/right kite"],
     "bad kite/kite": ["left kite/right kite"],
     "good kite/cut": ["left kite/left cut", "right kite/right cut"],
@@ -619,6 +620,7 @@ let currentCase = "";
 
 // Top bar buttons
 const toggleUiEl = document.getElementById("toggleui");
+const openHelpEl = document.getElementById("open-help")
 const uploadEl = document.getElementById("uploaddata");
 const downloadEl = document.getElementById("downloaddata");
 const fileEl = document.getElementById("fileinput");
@@ -652,11 +654,8 @@ const selectListEl = document.getElementById("sellist");
 const trainListEl = document.getElementById("trainlist");
 
 // Popup
-const displayScramEl = document.getElementById("display-scram");
-const canvasWrapperEl = document.getElementById("canvas-wrapper");
-const displayOBLname = document.getElementById("OBLname");
-
 const listPopupEl = document.getElementById("list-popup");
+const helpPopupEl = document.getElementById("help-popup");
 
 // Main page elements (scrambles and timer)
 const currentScrambleEl = document.getElementById("cur-scram");
@@ -760,6 +759,8 @@ async function init() {
 
     getLocalStorageData();
 
+    let lastRemoved = "";
+
     // Add buttons to the page for each OBL choice
     // Stored to a temp variable so we edit the page only once, and prevent a lag spike
 
@@ -793,6 +794,26 @@ async function init() {
 
 }
 
+function checkFirstWord(word, g, filter, u, d) {
+    if (g != word) return false;
+    else {
+        // if user only typed word:
+        if (filter.split(" ").length === 1 || filter.split(" ")[1] === "") 
+            return true;
+        else {
+            a = filter.split(" ")[1]
+            // only top case:
+            if (filter.split(" ").length === 2) {
+                return u.startsWith(a) || d.startsWith(a);
+            }
+            else {
+                b = filter.split(" ")[2]
+                return (u === a && d.startsWith(b)) || (d === a && u.startsWith(b));
+            }
+        }
+    }
+}
+
 function passesFilter(obl, filter) {
     // obl is the standardized string
     let g = obl[0];
@@ -802,41 +823,33 @@ function passesFilter(obl, filter) {
     let result_from_good_bad;
     let result_from_non_good_bad;
     if ("good".startsWith(filter.split(" ")[0])) {
-        if (g != "good") result_from_good_bad = false;
-        else {
-            // if user only typed "good":
-            if (filter.split(" ").length == 1 || filter.split(" ")[1] == "") 
-                result_from_good_bad = true;
-            else {
-                a = filter.split(" ")[1]
-                // only top case:
-                if (filter.split(" ").length == 2) {
-                    result_from_good_bad = u.startsWith(a) || d.startsWith(a);
-                }
-                else {
-                    b = filter.split(" ")[2]
-                    result_from_good_bad = (u == a && d.startsWith(b)) || 
-                            (d == a && u.startsWith(b));
-                }
-            }
-        }
+        result_from_good_bad = checkFirstWord("good", g, filter, u, d);
     }
     if ("bad".startsWith(filter.split(" ")[0])) {
-        if (g != "bad") result_from_good_bad = false;
+        result_from_good_bad = checkFirstWord("bad", g, filter, u, d);
+    };
+    if ("same".startsWith(filter.split(" ")[0])) {
+        result_from_good_bad = checkFirstWord("same", g, filter, u, d);
+    };
+    if ("different".startsWith(filter.split(" ")[0])) {
+        // make "different" count also
+        if (g != "diff") return false;
         else {
-            // if user only typed "bad":
-            if (filter.split(" ").length == 1 || filter.split(" ")[1] == "")
+            // if user typed "differ ":
+            if (!(filter.split(" ")[0] in ["diff", "different"]) && filter.split(" ").length > 1) 
+                result_from_good_bad = false;
+            // if user only typed "different", "diff":
+            else if (filter.split(" ").length === 1 || filter.split(" ")[1] === "")
                 result_from_good_bad = true;
             else {
                 a = filter.split(" ")[1]
                 // only top case:
-                if (filter.split(" ").length == 2) {
+                if (filter.split(" ").length === 2) {
                     result_from_good_bad = u.startsWith(a) || d.startsWith(a);
                 }
                 else {
                     b = filter.split(" ")[2]
-                    result_from_good_bad = (u == a && d.startsWith(b)) || 
-                            (d == a && u.startsWith(b));
+                    result_from_good_bad = (u === a && d.startsWith(b)) || (d === a && u.startsWith(b));
                 }
             }
         }
@@ -1134,14 +1147,23 @@ function validName(n) {
 }
 
 function openListPopup() {
-    if (usingTimer()) return;
-    isPopupOpen = true;
-    listPopupEl.classList.add("open");
+    if (isPopupOpen === false) {
+        isPopupOpen = true;
+        listPopupEl.classList.add("open");
+    }
+}
+
+function openHelpPopup() {
+    if (isPopupOpen === false) {
+        isPopupOpen = true;
+        listPopupEl.classList.add("open");
+    }
 }
 
 function closePopup() {
     isPopupOpen = false;
     listPopupEl.classList.remove("open");
+    helpPopupEl.classList.remove("open");
 }
 
 function canInteractTimer() {
@@ -1225,16 +1247,18 @@ showSelectionEl.addEventListener("click", () => {
     }
 });
 
-prevScrambleButton.addEventListener("click", () => {
+function prevScram() {
     if (usingTimer()) return;
     if (scrambleList.length == 0) return;
     scrambleOffset = Math.min(scrambleOffset + 1, scrambleList.length - 1);
     currentScrambleEl.textContent =
         scrambleList.at(-1-scrambleOffset)[usingKarn];
     displayPrevScram()
-});
+}
 
-nextScrambleButton.addEventListener("click", () => {
+prevScrambleButton.addEventListener("click", prevScram);
+
+function nextScram() {
     if (usingTimer()) return;
     if (scrambleList.length == 0) return;
     scrambleOffset--;
@@ -1246,12 +1270,19 @@ nextScrambleButton.addEventListener("click", () => {
             scrambleList.at(-1-scrambleOffset)[usingKarn];
         displayPrevScram()
     }
-});
+}
+
+nextScrambleButton.addEventListener("click", nextScram);
 
 openListsEl.addEventListener("click", () => {
     if (usingTimer()) return;
     openListPopup();
 });
+
+openHelpEl.addEventListener("click", () => {
+    if (usingTimer()) return;
+    openListPopup();
+})
 
 newListEl.addEventListener("click", () => {
     if (usingTimer()) return;
@@ -1368,6 +1399,7 @@ trainListEl.addEventListener("click", () => {
 });
 
 window.addEventListener("keydown", (e) => {
+    const inInput = document.activeElement === filterInputEl;
     if (e.code == "Escape") {
         if (isPopupOpen) {
             closePopup();
@@ -1375,9 +1407,50 @@ window.addEventListener("keydown", (e) => {
         if (usingTimer()) {
             resetTimer(false);
         }
+        if (inInput) filterInputEl.blur()
         return;
     }
 
+    // ctrl F (search cases); ctrl Z (undo remove last); ctrl Y (redo remove last)
+    const ctrl = navigator.platform.toUpperCase().includes("MAC") ? e.metaKey : e.ctrlKey;
+    if (ctrl) {
+        switch (e.key.toLowerCase()) {
+            case "f":
+                e.preventDefault(); // stop the browser’s find box
+                filterInputEl.focus();
+                return;
+            case "z":
+                e.preventDefault();
+                selectOBL(lastRemoved);
+                saveSelectedOBL();
+                return;
+            case "y":
+                e.preventDefault();
+                deselectOBL(lastRemoved);
+                saveSelectedOBL();
+                return;
+        }
+    }
+
+    // backspace (remove last); left arrow (prev scram); right arrow (next scram)
+    if (!inInput) {
+        switch (e.key) {
+            case "Backspace":
+                e.preventDefault();
+                removeLast();
+                return;
+            case "ArrowLeft":
+                e.preventDefault();
+                prevScram();
+                return;
+            case "ArrowRight":
+                e.preventDefault();
+                nextScram();
+                return;
+        }
+    }
+
+    // space (start timer)
     if (!canInteractTimer()) return;
     let isSpace = e.code == "Space";
     timerBeginTouch(isSpace);
@@ -1462,13 +1535,15 @@ eachCaseEl.addEventListener("change", (e) => {
     }
 });
 
-removeLastEl.addEventListener("click", () => {
+function removeLast() {
     if (scrambleList.at(-2-scrambleOffset) !== undefined) {
-         displayPrevScram
         deselectOBL(scrambleList.at(-2-scrambleOffset)[2])
-    saveSelectedOBL();
+        lastRemoved = scrambleList.at(-2-scrambleOffset)[2];
+        saveSelectedOBL();
     }
-})
+}
+
+removeLastEl.addEventListener("click", removeLast)
 
 karnEl.addEventListener("change", (e) => {
     usingKarn ^= 1; // switches between 0 and 1 with XOR

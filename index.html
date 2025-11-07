@@ -18,6 +18,7 @@
             </div>
             <div>OBL TRAINER</div>
             <div>
+                <button id="open-help">?</button>
                 <button id="uploaddata">&#8593;</button>
                 <button id="downloaddata">&#8595;</button>
             </div>
@@ -51,6 +52,20 @@
                 </div>
             </div>
 
+            <div class="popup" id="help-popup">
+                <div class="popup-inner">
+                    <div>
+                        <h1 style="text-align: center;">Help</h1>
+                        <p><b>←:</b> previous scramble</p>
+                        <p><b>→:</b> next scramble</p>
+                        <p><b>backspace:</b> remove last case</p>
+                        <p><b>Ctrl + F:</b> focus on search box</p>
+                        <p><b>Ctrl + Z:</b> undo remove last</p>
+                        <p><b>Ctrl + Y:</b> redo remove last</p>
+                    </div>
+                </div>
+            </div>
+
             <div class="sidebar full-width-mobile" id="sidebar">
                 <div class="checkbox-wrapper">
                     <input type="checkbox" id="allcases">
@@ -65,7 +80,7 @@
                 class="filter-input"
                 id="filter"
                 maxlength="18"
-                placeholder="Filter cases"
+                placeholder="Filter cases (Ctrl+F)"
                 />
                 <div class="selection-grid">
                     <button class="selection-btn" id="sela">
