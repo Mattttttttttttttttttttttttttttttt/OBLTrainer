@@ -1218,23 +1218,27 @@ filterInputEl.addEventListener("input", () => {
     updateSelCount();
 });
 
-selectAllEl.addEventListener("click", () => {
+function selectAll() {
     if (usingTimer()) return;
     for (let obl of possibleOBL) {
         selectOBL(OBLname(obl));
     }
     saveSelectedOBL();
-});
+}
 
-deselectAllEl.addEventListener("click", () => {
+selectAllEl.addEventListener("click", selectAll);
+
+function deselectAll() {
     if (usingTimer()) return;
     for (let obl of possibleOBL) {
         deselectOBL(OBLname(obl));
     }
     saveSelectedOBL();
-});
+}
 
-selectTheseEl.addEventListener("click", () => {
+deselectAllEl.addEventListener("click", deselectAll);
+
+function selectThese() {
     if (usingTimer()) return;
     for (i of OBLListEl.children) {
         if (!i.classList.contains("hidden")) {
@@ -1242,9 +1246,11 @@ selectTheseEl.addEventListener("click", () => {
         }
     }
     saveSelectedOBL();
-});
+}
 
-deselectTheseEl.addEventListener("click", () => {
+selectTheseEl.addEventListener("click", selectThese);
+
+function deselectThese() {
     if (usingTimer()) return;
     for (i of OBLListEl.children) {
         if (!i.classList.contains("hidden")) {
@@ -1252,14 +1258,18 @@ deselectTheseEl.addEventListener("click", () => {
         }
     }
     saveSelectedOBL();
-});
+}
 
-showAllEl.addEventListener("click", () => {
+deselectTheseEl.addEventListener("click", deselectThese);
+
+function showAllClick() {
     if (usingTimer()) return;
     showAll();
-});
+}
 
-showSelectionEl.addEventListener("click", () => {
+showAllEl.addEventListener("click", showAllClick);
+
+function showSelection() {
     if (usingTimer()) return;
     for (obl of possibleOBL) {
         const n = OBLname(obl);
@@ -1270,7 +1280,9 @@ showSelectionEl.addEventListener("click", () => {
         }
     }
     updateSelCount();
-});
+}
+
+showSelectionEl.addEventListener("click", showSelection);
 
 function prevScram() {
     if (usingTimer()) return;
@@ -1438,21 +1450,59 @@ window.addEventListener("keydown", (e) => {
 
     // ctrl F (search cases); ctrl Z (undo remove last); ctrl Y (redo remove last)
     const ctrl = navigator.platform.toUpperCase().includes("MAC") ? e.metaKey : e.ctrlKey;
-    if (ctrl) {
+    if (ctrl && !e.altKey) {
+        if (e.shiftKey) {
+            // ctrl + shift +
+            switch (e.key.toLowerCase()) {
+                case "a":
+                    e.preventDefault(); // stop the browser’s find box
+                    deselectAll();
+                    return;
+                case "t":
+                    e.preventDefault();
+                    deselectThese();
+                    return;
+            }
+        }
+        else {
+            // ctrl + 
+            switch (e.key.toLowerCase()) {
+                case "a":
+                    e.preventDefault(); // stop the browser’s find box
+                    selectAll();
+                    return;
+                case "t":
+                    e.preventDefault();
+                    selectThese();
+                    return;
+
+                case "f":
+                    e.preventDefault(); // stop the browser’s find box
+                    filterInputEl.focus();
+                    return;
+                case "z":
+                    e.preventDefault();
+                    selectOBL(lastRemoved);
+                    saveSelectedOBL();
+                    return;
+                case "y":
+                    e.preventDefault();
+                    deselectOBL(lastRemoved);
+                    saveSelectedOBL();
+                    return;
+            }
+        }
+    }
+    else if (!ctrl && e.altKey && !e.shiftKey) {
+        // alt + 
         switch (e.key.toLowerCase()) {
-            case "f":
+            case "a":
                 e.preventDefault(); // stop the browser’s find box
-                filterInputEl.focus();
+                showAll();
                 return;
-            case "z":
+            case "t":
                 e.preventDefault();
-                selectOBL(lastRemoved);
-                saveSelectedOBL();
-                return;
-            case "y":
-                e.preventDefault();
-                deselectOBL(lastRemoved);
-                saveSelectedOBL();
+                showSelection();
                 return;
         }
     }
