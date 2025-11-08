@@ -928,7 +928,7 @@ function generateScramble(regen=false) {
     ];
 
     if (regen) {
-        scrambleList.at(-1) = final;
+        scrambleList[scrambleList.length-1] = final;
         // set current scram only if we are on the current scram
         if (scrambleOffset === 0) currentScrambleEl.textContent = final[usingKarn];
     }
