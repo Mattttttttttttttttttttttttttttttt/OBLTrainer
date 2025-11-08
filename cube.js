@@ -877,7 +877,7 @@ function generateScramble(regen=false) {
         currentScrambleEl.textContent = scrambleList.at(-1-scrambleOffset)[usingKarn];
         return;
     }
-    else scrambleOffset = 0;
+    else if (scrambleOffset <= 0) scrambleOffset = 0;
     if (selectedOBL.length === 0) {
         timerEl.textContent = "--:--";
         currentScrambleEl.textContent = "Scramble will show up here";
