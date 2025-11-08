@@ -604,6 +604,7 @@ let hasActiveScramble = false;
 let isPopupOpen = false;
 
 let lastRemoved;
+let selectedCount = 0;
 
 let pressStartTime = null;
 let holdTimeout = null;
@@ -642,6 +643,7 @@ const selectTheseEl = document.getElementById("selt");
 const deselectTheseEl = document.getElementById("deselt");
 const showSelectionEl = document.getElementById("showselected");
 const showAllEl = document.getElementById("showall");
+const selCountEl = document.getElementById("selcount");
 
 // List buttons
 const openListsEl = document.getElementById("openlists");
@@ -689,6 +691,8 @@ function getLocalStorageData() {
         selectedOBL = JSON.parse(storageSelectedOBL);
         for (let k of selectedOBL) {
             selectOBL(k);
+            selectedCount++;
+            updateSelCount();
         }
         if (eachCaseEl.checked) {
             enableGoEachCase(1);
@@ -696,14 +700,14 @@ function getLocalStorageData() {
             enableGoEachCase(randInt(MIN_EACHCASE, MAX_EACHCASE));
         }
         generateScramble();
-        if (selectedOBL.length != 0) {
-            for (let obl of possibleOBL) {
-                hideOBL(OBLname(obl));
-            }
-            for (let obl of selectedOBL) {
-                showOBL(obl);
-            }
-        }
+        // if (selectedOBL.length != 0) {
+        //     for (let obl of possibleOBL) {
+        //         hideOBL(OBLname(obl));
+        //     }
+        //     for (let obl of selectedOBL) {
+        //         showOBL(obl);
+        //     }
+        // }
     }
 
     // userLists
@@ -719,6 +723,10 @@ function saveSelectedOBL() {
     // this is === 0 cuz genScram() has a if statement that deletes the scram if so
     if (!hasActiveScramble || selectedOBL.length === 0) generateScramble();
     else if (!(selectedOBL.includes(currentCase)) && currentCase != "") generateScramble(true);
+}
+
+function updateSelCount() {
+    selCountEl.textContent = "Selected: "+selectedCount;
 }
 
 function saveUserLists() {
@@ -761,6 +769,7 @@ async function init() {
     getLocalStorageData();
 
     lastRemoved = "";
+
 
     // Add buttons to the page for each OBL choice
     // Stored to a temp variable so we edit the page only once, and prevent a lag spike
@@ -977,6 +986,8 @@ function selectOBL(obl) {
     document.getElementById(obl).classList.add("checked");
     if (!selectedOBL.includes(obl)) {
         selectedOBL.push(obl);
+        selectedCount++;
+        updateSelCount();
     }
     if (eachCase > 0 && !remainingOBL.includes(obl)) {
         remainingOBL = remainingOBL.concat(Array(eachCase).fill(obl));
@@ -987,6 +998,8 @@ function deselectOBL(obl) {
     document.getElementById(obl).classList.remove("checked");
     if (selectedOBL.includes(obl)) {
         selectedOBL = selectedOBL.filter((a) => a != obl);
+        selectedCount--;
+        updateSelCount();
     }
     if (eachCase && remainingOBL.includes(obl)) {
         remainingOBL = remainingOBL.filter((a) => a != obl);
@@ -1119,12 +1132,13 @@ function selectList(listName, setSelection) {
     if (setSelection) {
         for (let [obl, inlist] of Object.entries(list)) {
             if (inlist) {
-                showOBL(obl);
+                // showOBL(obl);
                 selectOBL(obl);
-            } else {
-                hideOBL(obl);
-                deselectOBL(obl);
             }
+            // else {
+            //     hideOBL(obl);
+            //     deselectOBL(obl);
+            // }
         }
 
         saveSelectedOBL();

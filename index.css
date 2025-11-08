@@ -152,9 +152,24 @@ input[type="checkbox"] {
 
 .selection-grid {
     display: grid;
+    justify-content: center;
+    align-items: center;
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
     padding: .5rem 0;
+}
+
+.selection-text {
+    display: block;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1rem;
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    width: 80%;
+    align-self: center;
 }
 
 button {
