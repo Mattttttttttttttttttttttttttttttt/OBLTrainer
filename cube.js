@@ -718,6 +718,7 @@ function saveSelectedOBL() {
     localStorage.setItem("selectedOBL", JSON.stringify(selectedOBL));
     // this is === 0 cuz genScram() has a if statement that deletes the scram if so
     if (!hasActiveScramble || selectedOBL.length === 0) generateScramble();
+    else if (!(currentCase in selectedOBL)) generateScramble(true);
 }
 
 function saveUserLists() {
@@ -990,7 +991,6 @@ function deselectOBL(obl) {
     if (eachCase && remainingOBL.includes(obl)) {
         remainingOBL = remainingOBL.filter((a) => a != obl);
     }
-    if (currentCase === obl) generateScramble(true);
 }
 
 function formatTime(ms) {
