@@ -870,14 +870,13 @@ function passesFilter(obl, filter) {
 }
 
 function generateScramble(regen=false) {
-    if (scrambleOffset > 0) {
+    if (scrambleOffset >= 0) {
         // user probably timed one of the prev scrams
-        scrambleOffset--;
         displayPrevScram();
         currentScrambleEl.textContent = scrambleList.at(-1-scrambleOffset)[usingKarn];
         return;
     }
-    scrambleOffset = 0;
+    else if (scrambleOffset < 0) scrambleOffset = 0;
     if (selectedOBL.length === 0) {
         timerEl.textContent = "--:--";
         currentScrambleEl.textContent = "Scramble will show up here";
@@ -929,10 +928,9 @@ function generateScramble(regen=false) {
     ];
 
     if (regen) {
-        if (!hasActiveScramble) timerEl.textContent = "0.00";
-        currentScrambleEl.textContent = final[usingKarn];
         scrambleList.at(-1) = final;
-        hasActiveScramble = true;
+        // set current scram only if we are on the current scram
+        if (scrambleOffset === 0) currentScrambleEl.textContent = final[usingKarn];
     }
     else {
         if (scrambleList.length != 0) {
@@ -940,11 +938,11 @@ function generateScramble(regen=false) {
                 scrambleList.at(-1)[usingKarn] + " (" +
                 scrambleList.at(-1)[2] + ")";
         }
-        if (!hasActiveScramble) timerEl.textContent = "0.00";
         currentScrambleEl.textContent = final[usingKarn];
         scrambleList.push(final);
-        hasActiveScramble = true;
     }
+    if (!hasActiveScramble) timerEl.textContent = "0.00"; // prob for first scram
+    hasActiveScramble = true;
 }
 
 function displayPrevScram() {
@@ -1044,6 +1042,7 @@ function timerBeginTouch(spaceEquivalent) {
     if (isRunning) {
         // Stop timer
         stopTimer();
+        scrambleOffset--;
         generateScramble();
         if (!spaceEquivalent) otherKeyPressed += 1;
     } else if (spaceEquivalent && otherKeyPressed <= 0) {
