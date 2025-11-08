@@ -695,6 +695,7 @@ function getLocalStorageData() {
         } else {
             enableGoEachCase(randInt(MIN_EACHCASE, MAX_EACHCASE));
         }
+        scrambleOffset = 0;
         generateScramble();
         if (selectedOBL.length != 0) {
             for (let obl of possibleOBL) {
