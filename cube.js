@@ -1458,7 +1458,7 @@ window.addEventListener("keydown", (e) => {
                     e.preventDefault(); // stop the browser’s find box
                     deselectAll();
                     return;
-                case "t":
+                case "s":
                     e.preventDefault();
                     deselectThese();
                     return;
@@ -1471,7 +1471,7 @@ window.addEventListener("keydown", (e) => {
                     e.preventDefault(); // stop the browser’s find box
                     selectAll();
                     return;
-                case "t":
+                case "s":
                     e.preventDefault();
                     selectThese();
                     return;
@@ -1500,7 +1500,7 @@ window.addEventListener("keydown", (e) => {
                 e.preventDefault(); // stop the browser’s find box
                 showAll();
                 return;
-            case "t":
+            case "s":
                 e.preventDefault();
                 showSelection();
                 return;
