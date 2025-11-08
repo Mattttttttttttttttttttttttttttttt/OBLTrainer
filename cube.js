@@ -695,7 +695,6 @@ function getLocalStorageData() {
         } else {
             enableGoEachCase(randInt(MIN_EACHCASE, MAX_EACHCASE));
         }
-        scrambleOffset = 0;
         generateScramble();
         if (selectedOBL.length != 0) {
             for (let obl of possibleOBL) {
@@ -871,13 +870,13 @@ function passesFilter(obl, filter) {
 }
 
 function generateScramble(regen=false) {
-    if (scrambleOffset >= 0) {
+    if (scrambleOffset > 0) {
         // user probably timed one of the prev scrams
         displayPrevScram();
         currentScrambleEl.textContent = scrambleList.at(-1-scrambleOffset)[usingKarn];
         return;
     }
-    else if (scrambleOffset < 0) scrambleOffset = 0;
+    else scrambleOffset = 0;
     if (selectedOBL.length === 0) {
         timerEl.textContent = "--:--";
         currentScrambleEl.textContent = "Scramble will show up here";
