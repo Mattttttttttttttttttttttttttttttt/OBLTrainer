@@ -1140,8 +1140,8 @@ function selectList(listName, setSelection) {
             //     deselectOBL(obl);
             // }
         }
-
         saveSelectedOBL();
+        selCountEl.textContent = "Selected list: "+listName;
     } else {
         for (let [obl, inlist] of Object.entries(list)) {
             if (inlist) {
@@ -1150,6 +1150,7 @@ function selectList(listName, setSelection) {
                 hideOBL(obl);
             }
         }
+        selCountEl.textContent = "Showing list: "+listName;
     }
     saveUserLists();
 }
