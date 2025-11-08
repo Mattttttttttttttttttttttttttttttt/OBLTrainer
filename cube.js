@@ -971,6 +971,7 @@ function showAll() {
     for (let obl of possibleOBL) {
         showOBL(OBLname(obl));
     }
+    updateSelCount();
 }
 
 function hideOBL(text) {
@@ -1214,6 +1215,7 @@ filterInputEl.addEventListener("input", () => {
             hideOBL(n);
         }
     }
+    updateSelCount();
 });
 
 selectAllEl.addEventListener("click", () => {
@@ -1267,6 +1269,7 @@ showSelectionEl.addEventListener("click", () => {
             hideOBL(n);
         }
     }
+    updateSelCount();
 });
 
 function prevScram() {
