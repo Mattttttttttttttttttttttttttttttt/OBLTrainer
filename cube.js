@@ -603,7 +603,7 @@ let scrambleOffset = 0;
 let hasActiveScramble = false;
 let isPopupOpen = false;
 
-let cubeCenter, cubeScale;
+let lastRemoved;
 
 let pressStartTime = null;
 let holdTimeout = null;
@@ -718,7 +718,7 @@ function saveSelectedOBL() {
     localStorage.setItem("selectedOBL", JSON.stringify(selectedOBL));
     // this is === 0 cuz genScram() has a if statement that deletes the scram if so
     if (!hasActiveScramble || selectedOBL.length === 0) generateScramble();
-    else if (!(currentCase in selectedOBL)) generateScramble(true);
+    else if (!(currentCase in selectedOBL) && currentCase != "") generateScramble(true);
 }
 
 function saveUserLists() {
@@ -760,7 +760,7 @@ async function init() {
 
     getLocalStorageData();
 
-    let lastRemoved = "";
+    lastRemoved = "";
 
     // Add buttons to the page for each OBL choice
     // Stored to a temp variable so we edit the page only once, and prevent a lag spike
@@ -871,7 +871,7 @@ function passesFilter(obl, filter) {
 }
 
 function generateScramble(regen=false) {
-    if (scrambleOffset > 0) {
+    if (scrambleOffset > 0 && !regen) {
         // user probably timed one of the prev scrams
         displayPrevScram();
         currentScrambleEl.textContent = scrambleList.at(-1-scrambleOffset)[usingKarn];
@@ -1554,7 +1554,7 @@ removeLastEl.addEventListener("click", removeLast)
 
 karnEl.addEventListener("change", (e) => {
     usingKarn ^= 1; // switches between 0 and 1 with XOR
-    currentScrambleEl.textContent = scrambleList.at(-1-scrambleOffset)[usingKarn];
+    if (hasActiveScramble) currentScrambleEl.textContent = scrambleList.at(-1-scrambleOffset)[usingKarn];
     displayPrevScram()
 });
 
