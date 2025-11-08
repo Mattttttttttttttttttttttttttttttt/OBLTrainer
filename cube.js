@@ -869,7 +869,7 @@ function passesFilter(obl, filter) {
     return result_from_good_bad || result_from_non_good_bad;
 }
 
-function generateScramble() {
+function generateScramble(regen=false) {
     if (scrambleOffset > 0) {
         // user probably timed one of the prev scrams
         scrambleOffset--;
@@ -928,17 +928,23 @@ function generateScramble() {
         currentCase
     ];
 
-    if (scrambleList.length != 0) {
-        previousScrambleEl.textContent = "Previous scramble: " + 
-            scrambleList.at(-1)[usingKarn] + " (" +
-            scrambleList.at(-1)[2] + ")";
+    if (regen) {
+        if (!hasActiveScramble) timerEl.textContent = "0.00";
+        currentScrambleEl.textContent = final[usingKarn];
+        scrambleList.at(-1) = final;
+        hasActiveScramble = true;
     }
-    if (!hasActiveScramble) {
-        timerEl.textContent = "0.00";
+    else {
+        if (scrambleList.length != 0) {
+            previousScrambleEl.textContent = "Previous scramble: " + 
+                scrambleList.at(-1)[usingKarn] + " (" +
+                scrambleList.at(-1)[2] + ")";
+        }
+        if (!hasActiveScramble) timerEl.textContent = "0.00";
+        currentScrambleEl.textContent = final[usingKarn];
+        scrambleList.push(final);
+        hasActiveScramble = true;
     }
-    currentScrambleEl.textContent = final[usingKarn];
-    scrambleList.push(final);
-    hasActiveScramble = true;
 }
 
 function displayPrevScram() {
@@ -986,6 +992,7 @@ function deselectOBL(obl) {
     if (eachCase && remainingOBL.includes(obl)) {
         remainingOBL = remainingOBL.filter((a) => a != obl);
     }
+    if (currentCase === obl) generateScramble(true);
 }
 
 function formatTime(ms) {
@@ -1556,12 +1563,3 @@ karnEl.addEventListener("change", (e) => {
 for (let cross of document.querySelectorAll(".cross")) {
     cross.addEventListener("click", () => closePopup());
 }
-
-
-
-
-
-
-
-
-
