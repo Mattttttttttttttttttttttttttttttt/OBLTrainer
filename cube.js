@@ -1135,10 +1135,10 @@ function selectList(listName, setSelection) {
                 // showOBL(obl);
                 selectOBL(obl);
             }
-            // else {
+            else {
             //     hideOBL(obl);
-            //     deselectOBL(obl);
-            // }
+                deselectOBL(obl);
+            }
         }
         saveSelectedOBL();
         selCountEl.textContent = "Selected list: "+listName;
@@ -1150,7 +1150,7 @@ function selectList(listName, setSelection) {
                 hideOBL(obl);
             }
         }
-        selCountEl.textContent = "Showing list: "+listName;
+        selCountEl.textContent = "Viewing list: "+listName;
     }
     saveUserLists();
 }
