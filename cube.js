@@ -718,7 +718,7 @@ function saveSelectedOBL() {
     localStorage.setItem("selectedOBL", JSON.stringify(selectedOBL));
     // this is === 0 cuz genScram() has a if statement that deletes the scram if so
     if (!hasActiveScramble || selectedOBL.length === 0) generateScramble();
-    else if (!(currentCase in selectedOBL) && currentCase != "") generateScramble(true);
+    else if (!(selectedOBL.includes(currentCase)) && currentCase != "") generateScramble(true);
 }
 
 function saveUserLists() {
@@ -838,7 +838,7 @@ function passesFilter(obl, filter) {
         if (g != "diff") return false;
         else {
             // if user typed "differ ":
-            if (!(filter.split(" ")[0] in ["diff", "different"]) && filter.split(" ").length > 1) 
+            if (!(["diff", "different"].includes(filter.split(" ")[0])) && filter.split(" ").length > 1) 
                 result_from_good_bad = false;
             // if user only typed "different", "diff":
             else if (filter.split(" ").length === 1 || filter.split(" ")[1] === "")
