@@ -701,8 +701,9 @@ function listLength(list) {
 function getLocalStorageData() {
     // selectedOBL
     const storageSelectedOBL = localStorage.getItem("selectedOBL");
-    if (storageSelectedOBL !== null) {
+    if (storageSelectedOBL !== null && storageSelectedOBL.length !== 0) {
         selectedOBL = JSON.parse(storageSelectedOBL);
+        if (selectedOBL.length === 1) selectedOBL = [selectedOBL, []];
         for (let k of selectedOBL[usingSpe]) {
             selectOBL(k);
             updateSelCount();
@@ -732,6 +733,26 @@ function getLocalStorageData() {
 }
 
 function saveSelectedOBL() {
+    // convert the selectedOBL to the other list
+    if (!usingSpe) {
+        // good/bad → left/right
+        selectedOBL[1] = [];
+        for (let nonspe of selectedOBL[0]) {
+            for (spe of getSpe(nonspe)){
+                selectedOBL[1].push(spe);
+            }
+        }
+    }
+    else {
+        // left/right → good/bad
+        selectedOBL[0] = [];
+        for (let spe of selectedOBL[1]) {
+            if (!selectedOBL[0].includes(invOBLtranslation(spe))) {
+                selectedOBL[0].push(invOBLtranslation(spe));
+            }
+        }
+    }
+
     localStorage.setItem("selectedOBL", JSON.stringify(selectedOBL));
     // this is === 0 cuz genScram() has a if statement that deletes the scram if so
     if (!hasActiveScramble || selectedOBL[usingSpe].length === 0) generateScramble();
@@ -787,20 +808,28 @@ function addCaseButtons() {
     });
 }
 
+function getSpe(obl) {
+    // obl in english
+    let ret = [];
+    for (spec of OBLtranslation[obl]) {
+        ret.push(spec);
+        spec2 = spec.split("/")[1] + "/" + spec.split("/")[0];
+        if (spec2 !== spec) {
+            ret.push(spec2)
+        }
+    }
+    return ret;
+}
+
 async function init() {
     let buttons1 = "";
     let buttons2 = "";
-    for (obl of possibleOBL) {
+    for (let obl of possibleOBL) {
         buttons1 += `
         <div class="case" id="${OBLname(obl)}">${OBLname(obl)}</div>`;
-        for (spec of OBLtranslation[OBLname(obl)]) {
+        for (spec of getSpe(OBLname(obl))) {
             buttons2 += `
         <div class="case" id="${spec}">${spec}</div>`;
-            spec2 = spec.split("/")[1] + "/" + spec.split("/")[0];
-            if (spec2 !== spec) {
-                buttons2 += `
-        <div class="case" id="${spec2}">${spec2}</div>`;
-            }
         }
     }
     buttons = [buttons1, buttons2];
@@ -1239,23 +1268,47 @@ function selectList(listName, setSelection) {
     }
     if (setSelection) {
         for (let [obl, inlist] of Object.entries(list)) {
-            if (inlist) {
-                // showOBL(obl);
-                selectOBL(obl);
+            if (!usingSpe) {
+                if (inlist) {
+                    // showOBL(obl);
+                    selectOBL(obl);
+                }
+                else {
+                //     hideOBL(obl);
+                    deselectOBL(obl);
+                }
             }
             else {
-            //     hideOBL(obl);
-                deselectOBL(obl);
+                for (spe in getSpe(obl)) {
+                    if (inlist) {
+                        selectOBL(spe);
+                    }
+                    else {
+                        deselectOBL(spe);
+                    }
+                }
             }
         }
         saveSelectedOBL();
         selCountEl.textContent = "Selected list: "+listName;
     } else {
         for (let [obl, inlist] of Object.entries(list)) {
-            if (inlist) {
-                showOBL(obl);
-            } else {
-                hideOBL(obl);
+            if (!usingSpe){
+                if (inlist) {
+                    showOBL(obl);
+                } else {
+                    hideOBL(obl);
+                }
+            }
+            else {
+                for (spe in getSpe(obl)) {
+                    if (inlist) {
+                        showOBL(spe);
+                    }
+                    else {
+                        hideOBL(spe);
+                    }
+                }
             }
         }
         selCountEl.textContent = "Viewing list: "+listName;
@@ -1759,15 +1812,10 @@ speEl.addEventListener("change", (e) => {
         OBLListEl.innerHTML = buttons[usingSpe];
         filterInputEl.setAttribute("maxlength", 25);
         selectedOBL[1] = [];
-        for (nonspe of selectedOBL[0]) {
-            for (spe of OBLtranslation[nonspe]){
+        for (let nonspe of selectedOBL[0]) {
+            for (spe of getSpe(nonspe)){
                 selectedOBL[1].push(spe);
                 selectOBL(spe);
-                spe2 = spe.split("/")[1]+"/"+spe.split("/")[0];
-                if (spe2 !== spe) {
-                    selectedOBL[1].push(spe2);
-                    selectOBL(spe2);
-                }
             }
         }
         filterInput();
@@ -1778,7 +1826,7 @@ speEl.addEventListener("change", (e) => {
         OBLListEl.innerHTML = buttons[usingSpe];
         filterInputEl.setAttribute("maxlength", 18);
         selectedOBL[0] = [];
-        for (spe of selectedOBL[1]) {
+        for (let spe of selectedOBL[1]) {
             if (!selectedOBL[0].includes(invOBLtranslation(spe))) {
                 selectedOBL[0].push(invOBLtranslation(spe));
                 selectOBL(invOBLtranslation(spe));
