@@ -701,9 +701,9 @@ function listLength(list) {
 function getLocalStorageData() {
     // selectedOBL
     const storageSelectedOBL = localStorage.getItem("selectedOBL");
-    if (storageSelectedOBL !== null && storageSelectedOBL.length !== 0) {
+    if (storageSelectedOBL !== null) {
         selectedOBL = JSON.parse(storageSelectedOBL);
-        if (selectedOBL.length === 1) selectedOBL = [selectedOBL, []];
+        if (selectedOBL.length < 2) selectedOBL = [selectedOBL, []];
         for (let k of selectedOBL[usingSpe]) {
             selectOBL(k);
             updateSelCount();
