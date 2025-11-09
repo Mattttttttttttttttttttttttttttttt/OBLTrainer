@@ -1688,18 +1688,33 @@ window.addEventListener("keydown", (e) => {
 
     // backspace (remove last); left arrow (prev scram); right arrow (next scram)
     if (!inInput) {
-        switch (e.key) {
-            case "Backspace":
+        switch (e.key.toLowerCase()) {
+            case "backspace":
                 e.preventDefault();
                 removeLast();
                 return;
-            case "ArrowLeft":
+            case "arrowleft":
                 e.preventDefault();
                 prevScram();
                 return;
-            case "ArrowRight":
+            case "arrowright":
                 e.preventDefault();
                 nextScram();
+                return;
+            case "e":
+                e.preventDefault();
+                eachCaseEl.checked = !eachCaseEl.checked;
+                toggleEachCase();
+                return;
+            case "k":
+                e.preventDefault();
+                karnEl.checked = !karnEl.checked;
+                toggleKarn();
+                return;
+            case "s":
+                e.preventDefault();
+                speEl.checked = !speEl.checked;
+                toggleSpecific();
                 return;
         }
     }
@@ -1782,12 +1797,14 @@ fileEl.addEventListener("change", (e) => {
     reader.readAsText(file);
 });
 
-eachCaseEl.addEventListener("change", (e) => {
+function toggleEachCase(e = null) {
     eachCase = eachCaseEl.checked ? 1 : randInt(MIN_EACHCASE, MAX_EACHCASE);
     if (eachCase == 1) {
         enableGoEachCase(eachCase);
     }
-});
+}
+
+eachCaseEl.addEventListener("change", toggleEachCase);
 
 function removeLast() {
     if (scrambleList.at(-2-scrambleOffset) !== undefined) {
@@ -1799,13 +1816,15 @@ function removeLast() {
 
 removeLastEl.addEventListener("click", removeLast)
 
-karnEl.addEventListener("change", (e) => {
+function toggleKarn(e = null) {
     usingKarn ^= 1; // switches between 0 and 1 with XOR
     if (hasActiveScramble) currentScrambleEl.textContent = scrambleList.at(-1-scrambleOffset)[usingKarn];
     displayPrevScram()
-});
+}
 
-speEl.addEventListener("change", (e) => {
+karnEl.addEventListener("change", toggleKarn);
+
+function toggleSpecific(e = null) {
     usingSpe ^= 1; // switches between 0 and 1 with XOR
     if (usingSpe) {
         // good/bad → left/right
@@ -1837,7 +1856,9 @@ speEl.addEventListener("change", (e) => {
     }
     addCaseButtons();
     updateSelCount();
-});
+}
+
+speEl.addEventListener("change", toggleSpecific);
 
 // Enable crosses
 for (let cross of document.querySelectorAll(".cross")) {
