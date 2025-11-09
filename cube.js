@@ -703,7 +703,7 @@ function getLocalStorageData() {
     const storageSelectedOBL = localStorage.getItem("selectedOBL");
     if (storageSelectedOBL !== null) {
         selectedOBL = JSON.parse(storageSelectedOBL);
-        if (selectedOBL.length < 2) selectedOBL = [selectedOBL, []];
+        if (selectedOBL.length !== 2) selectedOBL = [selectedOBL, []];
         for (let k of selectedOBL[usingSpe]) {
             selectOBL(k);
             updateSelCount();
@@ -1279,7 +1279,7 @@ function selectList(listName, setSelection) {
                 }
             }
             else {
-                for (spe in getSpe(obl)) {
+                for (spe of getSpe(obl)) {
                     if (inlist) {
                         selectOBL(spe);
                     }
@@ -1301,7 +1301,7 @@ function selectList(listName, setSelection) {
                 }
             }
             else {
-                for (spe in getSpe(obl)) {
+                for (spe of getSpe(obl)) {
                     if (inlist) {
                         showOBL(spe);
                     }
