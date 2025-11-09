@@ -40,6 +40,7 @@ body {
 }
 
 .checkbox-wrapper {
+    margin-left: 50px;
     margin-bottom: 10px;
 }
 
@@ -110,6 +111,8 @@ input[type="checkbox"] {
     display: flex;
     align-items: center;
     justify-content: center;
+    text-align: center;
+    padding: 0px 4px;
     background-color: #262626;
     color: #ffffff;
     cursor: pointer;
@@ -419,6 +422,8 @@ button:hover {
 }
 
 .help p {
+    margin-top: 0.3em;
+    margin-bottom: 0.7em;
     margin-left: 50px;
     font-size: 1.5v*;
 }

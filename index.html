@@ -8,6 +8,7 @@
         />
         <title>OBL Trainer</title>
         <link rel="stylesheet" href="index.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <script defer="defer" src="cube.js"></script>
         <link rel="shortcut icon" type="image/x-icon" href="caticon.ico">
     </head>
@@ -18,9 +19,9 @@
             </div>
             <div>OBL TRAINER</div>
             <div>
-                <button id="open-help">?</button>
-                <button id="uploaddata">&#8593;</button>
-                <button id="downloaddata">&#8595;</button>
+                <button id="open-help">⚙️</button>
+                <button id="uploaddata"><i class="fa fa-upload"></i></button>
+                <button id="downloaddata"><i class="fa fa-download"></i></button>
             </div>
             <input
                 type="file"
@@ -55,8 +56,20 @@
             <div class="popup" id="help-popup">
                 <div class="popup-inner">
                     <div class="list-bar">
-                        <div class="list-name">Help</div>
+                        <div class="list-name">Settings</div>
                         <div class="cross">&#10005;</div>
+                    </div>
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="allcases">
+                        <span class="checkboxtext"><b>Go through each case once</b></span>
+                    </div>
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="karn">
+                        <span class="checkboxtext"><b>Use karnotation</b></span>
+                    </div>
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="specific">
+                        <span class="checkboxtext"><b>Use specific case naming</b></span>
                     </div>
                     <div class="help">
                         <p><b>←:</b> previous scramble</p>
@@ -76,14 +89,6 @@
             </div>
 
             <div class="sidebar full-width-mobile" id="sidebar">
-                <div class="checkbox-wrapper">
-                    <input type="checkbox" id="allcases">
-                    <span class="checkboxtext"><b>Go through each case once</b></span>
-                </div>
-                <div class="checkbox-wrapper">
-                    <input type="checkbox" id="karn">
-                    <span class="checkboxtext"><b>Use karnotation</b></span>
-                </div>
                 <input
                 type="text"
                 class="filter-input"

@@ -50,7 +50,7 @@ function replaceWithDict(str, dict) {
 
 
 // here i'll attempt to generate algs
-OBL = {"1c": "BBwWWwWWwWWw",
+const OBL = {"1c": "BBwWWwWWwWWw",
        "cadj": "BBwBBwWWwWWw",
        "copp": "BBwWWwBBwWWw",
        "3c": "BBwBBwBBwWWw",
@@ -178,8 +178,8 @@ const HIGHKARN = {
     " 6-3 ": " U2D' ",
     " 66 ": " U2D2 ",
     " 06 ": " D2 ",
-    " 36 ": " UD2",
-    " -36 ": " U'D2"
+    " 36 ": " UD2 ",
+    " -36 ": " U'D2 "
 };
 // if the following moves accur, replace them with optimized ones
 // UPDATE THIS
@@ -584,14 +584,28 @@ let OBLtranslation = {
     "good tie/tie": ["black tie/black tie", "white tie/white tie"],
     "bad tie/tie": ["black tie/white tie"]
 }
-let selectedOBL = []; // [oblid]
+
+function invOBLtranslation(spec) {
+    // spec: ""black tie/left N"
+    // return: "tie/N"
+    for (nonSpec in OBLtranslation) {
+        if (OBLtranslation[nonSpec].includes(spec) ||
+            OBLtranslation[nonSpec].includes(spec.split("/")[1]+"/"+spec.split("/")[0]))
+            return nonSpec;
+    }
+    throw Error("spec: "+spec+" not in OBLtranslation");
+}
+
+let selectedOBL = [[], []]; // [[oblidgood/bad], [oblidleft/right]]
 let scrambleList = []; // [[normal, karn], etc.]
 
 let previousScramble = null;
 
-let remainingOBL = [];
+let remainingOBL = [[], []]; // [[oblidgood/bad], [oblidleft/right]]
 let eachCase = 0; // 0 = random, n = get each case n times before moving on
 let usingKarn = 0; // 0 = not using karn, etc.
+let usingSpe = 0; // 0 = not using specific naming, etc.
+let buttons = [];
 const MIN_EACHCASE = 2;
 const MAX_EACHCASE = 4;
 
@@ -604,7 +618,6 @@ let hasActiveScramble = false;
 let isPopupOpen = false;
 
 let lastRemoved;
-let selectedCount = 0;
 
 let pressStartTime = null;
 let holdTimeout = null;
@@ -621,7 +634,7 @@ let currentCase = "";
 
 // Top bar buttons
 const toggleUiEl = document.getElementById("toggleui");
-const openHelpEl = document.getElementById("open-help")
+const openHelpEl = document.getElementById("open-help");
 const uploadEl = document.getElementById("uploaddata");
 const downloadEl = document.getElementById("downloaddata");
 const fileEl = document.getElementById("fileinput");
@@ -634,7 +647,8 @@ const filterInputEl = document.getElementById("filter");
 
 const eachCaseEl = document.getElementById("allcases");
 const karnEl = document.getElementById("karn");
-const removeLastEl = document.getElementById("unselprev")
+const speEl = document.getElementById("specific");
+const removeLastEl = document.getElementById("unselprev");
 
 // Selection buttons
 const selectAllEl = document.getElementById("sela");
@@ -651,7 +665,7 @@ const userListsEl = document.getElementById("userlists");
 const defaultListsEl = document.getElementById("defaultlists");
 const newListEl = document.getElementById("newlist");
 const deleteListEl = document.getElementById("dellist");
-const overwriteListEl = document.getElementById("overlist")
+const overwriteListEl = document.getElementById("overlist");
 const selectListEl = document.getElementById("sellist");
 const trainListEl = document.getElementById("trainlist");
 
@@ -689,9 +703,8 @@ function getLocalStorageData() {
     const storageSelectedOBL = localStorage.getItem("selectedOBL");
     if (storageSelectedOBL !== null) {
         selectedOBL = JSON.parse(storageSelectedOBL);
-        for (let k of selectedOBL) {
+        for (let k of selectedOBL[usingSpe]) {
             selectOBL(k);
-            selectedCount++;
             updateSelCount();
         }
         if (eachCaseEl.checked) {
@@ -721,12 +734,12 @@ function getLocalStorageData() {
 function saveSelectedOBL() {
     localStorage.setItem("selectedOBL", JSON.stringify(selectedOBL));
     // this is === 0 cuz genScram() has a if statement that deletes the scram if so
-    if (!hasActiveScramble || selectedOBL.length === 0) generateScramble();
-    else if (!(selectedOBL.includes(currentCase)) && currentCase != "") generateScramble(true);
+    if (!hasActiveScramble || selectedOBL[usingSpe].length === 0) generateScramble();
+    else if (!(selectedOBL[usingSpe].includes(currentCase)) && currentCase != "") generateScramble(true);
 }
 
 function updateSelCount() {
-    selCountEl.textContent = "Selected: "+selectedCount;
+    selCountEl.textContent = "Selected: "+selectedOBL[usingSpe].length;
 }
 
 function saveUserLists() {
@@ -758,22 +771,7 @@ function addListItemEvent(item) {
     });
 }
 
-async function init() {
-    let buttons = "";
-    for (obl of possibleOBL) {
-        buttons += `
-        <div class="case" id="${OBLname(obl)}">${OBLname(obl)}</div>`;
-    }
-    OBLListEl.innerHTML += buttons;
-
-    getLocalStorageData();
-
-    lastRemoved = "";
-
-
-    // Add buttons to the page for each OBL choice
-    // Stored to a temp variable so we edit the page only once, and prevent a lag spike
-
+function addCaseButtons() {
     // Add event listener to each button, so we can click it
     document.querySelectorAll(".case").forEach((caseEl) => {
         caseEl.addEventListener("click", () => {
@@ -787,6 +785,36 @@ async function init() {
             saveSelectedOBL();
         });
     });
+}
+
+async function init() {
+    let buttons1 = "";
+    let buttons2 = "";
+    for (obl of possibleOBL) {
+        buttons1 += `
+        <div class="case" id="${OBLname(obl)}">${OBLname(obl)}</div>`;
+        for (spec of OBLtranslation[OBLname(obl)]) {
+            buttons2 += `
+        <div class="case" id="${spec}">${spec}</div>`;
+            spec2 = spec.split("/")[1] + "/" + spec.split("/")[0];
+            if (spec2 !== spec) {
+                buttons2 += `
+        <div class="case" id="${spec2}">${spec2}</div>`;
+            }
+        }
+    }
+    buttons = [buttons1, buttons2];
+    OBLListEl.innerHTML = buttons[usingSpe];
+
+    getLocalStorageData();
+
+    lastRemoved = "";
+
+
+    // Add buttons to the page for each OBL choice
+    // Stored to a temp variable so we edit the page only once, and prevent a lag spike
+
+    addCaseButtons();
 
     // Load default lists
     await fetch("./defaultlists.json")
@@ -808,16 +836,16 @@ function checkFirstWord(word, g, filter, u, d) {
     if (g != word) return false;
     else {
         // if user only typed word:
-        if (filter.split(" ").length === 1 || filter.split(" ")[1] === "") 
+        if (filter.length === 1 || filter[1] === "") 
             return true;
         else {
-            a = filter.split(" ")[1]
+            a = filter[1]
             // only top case:
-            if (filter.split(" ").length === 2) {
+            if (filter.length === 2) {
                 return u.startsWith(a) || d.startsWith(a);
             }
             else {
-                b = filter.split(" ")[2]
+                b = filter[2]
                 return (u === a && d.startsWith(b)) || (d === a && u.startsWith(b));
             }
         }
@@ -825,58 +853,117 @@ function checkFirstWord(word, g, filter, u, d) {
 }
 
 function passesFilter(obl, filter) {
-    // obl is the standardized string
+    // obl is the name of a .case element TODO
     if (filter === "") return true;
-    let g = obl[0];
-    let u = obl[1].toLowerCase();
-    let d = obl[2].toLowerCase();
-    filter = filter.replace("/", " ").toLowerCase();
-    let result_from_good_bad;
-    let result_from_non_good_bad;
-    if ("good".startsWith(filter.split(" ")[0])) {
-        result_from_good_bad = checkFirstWord("good", g, filter, u, d);
-    }
-    if ("bad".startsWith(filter.split(" ")[0])) {
-        result_from_good_bad = checkFirstWord("bad", g, filter, u, d);
-    };
-    if ("same".startsWith(filter.split(" ")[0])) {
-        result_from_good_bad = checkFirstWord("same", g, filter, u, d);
-    };
-    if ("different".startsWith(filter.split(" ")[0])) {
-        // make "different" count also
-        if (g != "diff") return false;
-        else {
-            // if user typed "differ ":
-            if (!(["diff", "different"].includes(filter.split(" ")[0])) && filter.split(" ").length > 1) 
-                result_from_good_bad = false;
-            // if user only typed "different", "diff":
-            else if (filter.split(" ").length === 1 || filter.split(" ")[1] === "")
-                result_from_good_bad = true;
-            else {
-                a = filter.split(" ")[1]
-                // only top case:
-                if (filter.split(" ").length === 2) {
-                    result_from_good_bad = u.startsWith(a) || d.startsWith(a);
+    filter = filter.replace("/", " ").toLowerCase().split(" ");
+    if (usingSpe) {
+        // filter left/right
+        obllst = obl.split("/");
+        u = obllst[0];
+        ulst = u.split(" ");
+        d = obllst[1];
+        dlst = d.split(" ");
+        obl = obl.replaceAll("/", " ").split(" ")
+        filter = filter.filter((i) => i !== "");
+        switch (filter.length) {
+            case 1:
+                return obl.some((i) => i.startsWith(filter[0]));
+            case 2:
+                if (["left", "right"].includes(filter[0])) {
+                    // "left knight"
+                    return u.startsWith(filter.join(" ")) ||
+                            d.startsWith(filter.join(" "));
+                }
+                else if ("left".startsWith(filter[1] || "right".startsWith(filter[1]))) {
+                    // "gem left" or "knight left"
+                    return (ulst.at(-1) === filter[0] && dlst[0].startsWith(filter[1])) ||
+                            (dlst.at(-1) === filter[0] && ulst[0].startsWith(filter[1]));
                 }
                 else {
-                    b = filter.split(" ")[2]
-                    result_from_good_bad = (u === a && d.startsWith(b)) || (d === a && u.startsWith(b));
+                    // "gem knight"
+                    return (ulst.at(-1) === filter[0] && dlst.at(-1).startsWith(filter[1])) ||
+                            (dlst.at(-1) === filter[0] && ulst.at(-1).startsWith(filter[1]));
                 }
-            }
+            case 3:
+                if (["left", "right"].includes(filter[0])) {
+                    // "left knight gem" or "left knight left"
+                    return (u === filter[0]+" "+filter[1] && 
+                            dlst.some((i) => i.startsWith(filter.at(-1)))) ||
+                            (d === filter[0]+" "+filter[1] && 
+                            ulst.some((i) => i.startsWith(filter.at(-1))));
+                }
+                else if (["left", "right"].includes(filter[1])) {
+                    // "gem left knight" or "knight left knight"
+                    return (ulst.at(-1) === filter[0] && d.startsWith(filter[1]+" "+filter[2])) ||
+                            (dlst.at(-1) === filter[0] && u.startsWith(filter[1]+" "+filter[2]));
+                }
+                else {
+                    // "left knight left" handled already; "left knight gem"
+                    return (ulst.at(-1) === filter[2] && d.startsWith(filter[0]+" "+filter[1])) ||
+                            (dlst.at(-1) === filter[2] && u.startsWith(filter[0]+" "+filter[1]))
+                }
+            case 4:
+                // "left bunny right thumb"
+                return (u === filter[0]+" "+filter[1] && d.startsWith(filter[2]+" "+filter[3])) ||
+                        (d === filter[0]+" "+filter[1] && u.startsWith(filter[2]+" "+filter[3]));
+            default:
+                return false;
         }
-    };
-    // from here, filter's g = ""
-    a = filter.split(" ")[0]
-    // only top case:
-    if (filter.split(" ").length == 1 || filter.split(" ")[1] == "") {
-        result_from_non_good_bad = u.startsWith(a) || d.startsWith(a);
     }
     else {
-        b = filter.split(" ")[1]
-        result_from_non_good_bad = (u == a && d.startsWith(b)) || 
-                (d == a && u.startsWith(b));
-    }
-    return result_from_good_bad || result_from_non_good_bad;
+        // filter good/bad
+        obl = obl.replaceAll("/", " ").split(" ");
+        if (obl.length === 2) obl.unshift("");
+        let g = obl[0];
+        let u = obl[1].toLowerCase();
+        let d = obl[2].toLowerCase();
+        let result_from_good_bad;
+        let result_from_non_good_bad;
+        if ("good".startsWith(filter[0])) {
+            result_from_good_bad = checkFirstWord("good", g, filter, u, d);
+        }
+        if ("bad".startsWith(filter[0])) {
+            result_from_good_bad = checkFirstWord("bad", g, filter, u, d);
+        };
+        if ("same".startsWith(filter[0])) {
+            result_from_good_bad = checkFirstWord("same", g, filter, u, d);
+        };
+        if ("different".startsWith(filter[0])) {
+            // make "different" count also
+            if (g != "diff") return false;
+            else {
+                // if user typed "differ ":
+                if (!(["diff", "different"].includes(filter[0])) && filter.length > 1) 
+                    result_from_good_bad = false;
+                // if user only typed "different", "diff":
+                else if (filter.length === 1 || filter[1] === "")
+                    result_from_good_bad = true;
+                else {
+                    a = filter[1]
+                    // only top case:
+                    if (filter.length === 2) {
+                        result_from_good_bad = u.startsWith(a) || d.startsWith(a);
+                    }
+                    else {
+                        b = filter[2]
+                        result_from_good_bad = (u === a && d.startsWith(b)) || (d === a && u.startsWith(b));
+                    }
+                }
+            }
+        };
+        // from here, filter's g = ""
+        a = filter[0]
+        // only top case:
+        if (filter.length == 1 || filter[1] == "") {
+            result_from_non_good_bad = u.startsWith(a) || d.startsWith(a);
+        }
+        else {
+            b = filter[1]
+            result_from_non_good_bad = (u == a && d.startsWith(b)) || 
+                    (d == a && u.startsWith(b));
+        }
+        return result_from_good_bad || result_from_non_good_bad;
+}
 }
 
 function generateScramble(regen=false) {
@@ -887,7 +974,7 @@ function generateScramble(regen=false) {
         return;
     }
     else if (scrambleOffset <= 0) scrambleOffset = 0;
-    if (selectedOBL.length === 0) {
+    if (selectedOBL[usingSpe].length === 0) {
         timerEl.textContent = "--:--";
         currentScrambleEl.textContent = "Scramble will show up here";
         previousScrambleEl.textContent = "Last scramble will show up here";
@@ -895,20 +982,20 @@ function generateScramble(regen=false) {
         scrambleList = [];
         return;
     }
-    if (remainingOBL.length === 0) {
+    if (remainingOBL[usingSpe].length === 0) {
         // start a new cycle
         let number = eachCaseEl.checked
             ? 1
             : randInt(MIN_EACHCASE, MAX_EACHCASE);
         enableGoEachCase(number);
     }
-    let caseNum = randInt(0, remainingOBL.length - 1);
-    OBLChoice = remainingOBL.splice(caseNum, 1)[0]; // OBLChoice: "good knight/axe"
+    let caseNum = randInt(0, remainingOBL[usingSpe].length - 1);
+    OBLChoice = remainingOBL[usingSpe].splice(caseNum, 1)[0]; // OBLChoice: "good knight/axe"
 
-    currentCase = OBLChoice;
+    currentCase = OBLChoice; // could be either good/bad or left/right
 
-    OBLChoice = OBLtranslation[OBLChoice];
-    OBLChoice = OBLChoice[randInt(0, OBLChoice.length - 1)];
+    OBLChoice = usingSpe ? OBLChoice : 
+            OBLtranslation[OBLChoice][randInt(0, OBLtranslation[OBLChoice].length - 1)];
     scramble = getScramble(OBLChoice);
 
     // Add random begin and end layer moves
@@ -985,25 +1072,45 @@ function showOBL(text) {
 function selectOBL(obl) {
     // obl is the id of the element, which is in english
     document.getElementById(obl).classList.add("checked");
-    if (!selectedOBL.includes(obl)) {
-        selectedOBL.push(obl);
-        selectedCount++;
-        updateSelCount();
+    if (usingSpe) {
+        if (!selectedOBL[1].includes(obl)) {
+            selectedOBL[1].push(obl);
+            updateSelCount();
+        }
+        if (eachCase > 0 && !remainingOBL[1].includes(obl)) {
+            remainingOBL[1] = remainingOBL[1].concat(Array(eachCase).fill(obl));
+        }
     }
-    if (eachCase > 0 && !remainingOBL.includes(obl)) {
-        remainingOBL = remainingOBL.concat(Array(eachCase).fill(obl));
+    else {
+        if (!selectedOBL[0].includes(obl)) {
+            selectedOBL[0].push(obl);
+            updateSelCount();
+        }
+        if (eachCase > 0 && !remainingOBL[0].includes(obl)) {
+            remainingOBL[0] = remainingOBL[0].concat(Array(eachCase).fill(obl));
+        }
     }
 }
 
 function deselectOBL(obl) {
     document.getElementById(obl).classList.remove("checked");
-    if (selectedOBL.includes(obl)) {
-        selectedOBL = selectedOBL.filter((a) => a != obl);
-        selectedCount--;
-        updateSelCount();
+    if (usingSpe) {
+        if (selectedOBL[1].includes(obl)) {
+            selectedOBL[1] = selectedOBL[1].filter((a) => a != obl);
+            updateSelCount();
+        }
+        if (eachCase > 0 && remainingOBL[1].includes(obl)) {
+            remainingOBL[1] = remainingOBL[1].filter((a) => a != obl);
+        }
     }
-    if (eachCase && remainingOBL.includes(obl)) {
-        remainingOBL = remainingOBL.filter((a) => a != obl);
+    else {
+        if (selectedOBL[0].includes(obl)) {
+            selectedOBL[0] = selectedOBL[0].filter((a) => a != obl);
+            updateSelCount();
+        }
+        if (eachCase > 0 && remainingOBL[0].includes(obl)) {
+            remainingOBL[0] = remainingOBL[0].filter((a) => a != obl);
+        }
     }
 }
 
@@ -1199,30 +1306,35 @@ function canInteractTimer() {
 
 function enableGoEachCase(count) {
     eachCase = count;
-    remainingOBL = selectedOBL.flatMap((el) => Array(eachCase).fill(el));
+    remainingOBL[usingSpe] = selectedOBL[usingSpe].flatMap((el) => Array(eachCase).fill(el));
 }
 
 init();
 
-filterInputEl.addEventListener("input", () => {
+function filterInput() {
     filterInputEl.value = filterInputEl.value.replace(/[^a-zA-Z1-4/\- ]+/g, "");
     setHighlightedList(null);
-    for (obl of possibleOBL) {
-        const n = OBLname(obl);
+    document.querySelectorAll(".case").forEach((caseEl) => {
+        obl = caseEl.id;
         if (passesFilter(obl, filterInputEl.value)) {
-            showOBL(n);
+            showOBL(obl);
         } else {
-            hideOBL(n);
+            hideOBL(obl);
         }
-    }
+    });
     updateSelCount();
-});
+}
+
+filterInputEl.addEventListener("input", filterInput);
 
 function selectAll() {
     if (usingTimer()) return;
-    for (let obl of possibleOBL) {
-        selectOBL(OBLname(obl));
-    }
+    document.querySelectorAll(".case").forEach((caseEl) => {
+        selectOBL(caseEl.id);
+    });
+    document.querySelectorAll(".case.hidden").forEach((caseEl) => {
+        selectOBL(caseEl.id);
+    });
     saveSelectedOBL();
 }
 
@@ -1230,9 +1342,12 @@ selectAllEl.addEventListener("click", selectAll);
 
 function deselectAll() {
     if (usingTimer()) return;
-    for (let obl of possibleOBL) {
-        deselectOBL(OBLname(obl));
-    }
+    document.querySelectorAll(".case").forEach((caseEl) => {
+        deselectOBL(caseEl.id);
+    });
+    document.querySelectorAll(".case.hidden").forEach((caseEl) => {
+        deselectOBL(caseEl.id);
+    });
     saveSelectedOBL();
 }
 
@@ -1435,6 +1550,15 @@ trainListEl.addEventListener("click", () => {
     closePopup();
 });
 
+function isMac() {
+  if (navigator.userAgentData) {
+    // Newer, privacy-preserving API
+    return navigator.userAgentData.platform === "macOS";
+  }
+  // Fallback for older browsers
+  return navigator.userAgent.toUpperCase().includes("MAC");
+}
+
 window.addEventListener("keydown", (e) => {
     const inInput = document.activeElement === filterInputEl;
     if (e.code == "Escape") {
@@ -1449,13 +1573,13 @@ window.addEventListener("keydown", (e) => {
     }
 
     // ctrl F (search cases); ctrl Z (undo remove last); ctrl Y (redo remove last)
-    const ctrl = navigator.platform.toUpperCase().includes("MAC") ? e.metaKey : e.ctrlKey;
+    const ctrl = isMac() ? e.metaKey : e.ctrlKey;
     if (ctrl && !e.altKey) {
         if (e.shiftKey) {
             // ctrl + shift +
             switch (e.key.toLowerCase()) {
                 case "a":
-                    e.preventDefault(); // stop the browser’s find box
+                    e.preventDefault();
                     deselectAll();
                     return;
                 case "s":
@@ -1468,8 +1592,10 @@ window.addEventListener("keydown", (e) => {
             // ctrl + 
             switch (e.key.toLowerCase()) {
                 case "a":
-                    e.preventDefault(); // stop the browser’s find box
-                    selectAll();
+                    if (!inInput) {
+                        e.preventDefault();
+                        selectAll();
+                    }
                     return;
                 case "s":
                     e.preventDefault();
@@ -1497,7 +1623,7 @@ window.addEventListener("keydown", (e) => {
         // alt + 
         switch (e.key.toLowerCase()) {
             case "a":
-                e.preventDefault(); // stop the browser’s find box
+                e.preventDefault();
                 showAll();
                 return;
             case "s":
@@ -1624,6 +1750,45 @@ karnEl.addEventListener("change", (e) => {
     usingKarn ^= 1; // switches between 0 and 1 with XOR
     if (hasActiveScramble) currentScrambleEl.textContent = scrambleList.at(-1-scrambleOffset)[usingKarn];
     displayPrevScram()
+});
+
+speEl.addEventListener("change", (e) => {
+    usingSpe ^= 1; // switches between 0 and 1 with XOR
+    if (usingSpe) {
+        // good/bad → left/right
+        OBLListEl.innerHTML = buttons[usingSpe];
+        filterInputEl.setAttribute("maxlength", 25);
+        selectedOBL[1] = [];
+        for (nonspe of selectedOBL[0]) {
+            for (spe of OBLtranslation[nonspe]){
+                selectedOBL[1].push(spe);
+                selectOBL(spe);
+                spe2 = spe.split("/")[1]+"/"+spe.split("/")[0];
+                if (spe2 !== spe) {
+                    selectedOBL[1].push(spe2);
+                    selectOBL(spe2);
+                }
+            }
+        }
+        filterInput();
+        enableGoEachCase();
+    }
+    else {
+        // left/right → good/bad
+        OBLListEl.innerHTML = buttons[usingSpe];
+        filterInputEl.setAttribute("maxlength", 18);
+        selectedOBL[0] = [];
+        for (spe of selectedOBL[1]) {
+            if (!selectedOBL[0].includes(invOBLtranslation(spe))) {
+                selectedOBL[0].push(invOBLtranslation(spe));
+                selectOBL(invOBLtranslation(spe));
+            }
+        }
+        filterInput();
+        enableGoEachCase();
+    }
+    addCaseButtons();
+    updateSelCount();
 });
 
 // Enable crosses
