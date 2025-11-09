@@ -1621,7 +1621,7 @@ window.addEventListener("keydown", (e) => {
         if (usingTimer()) {
             resetTimer(false);
         }
-        if (inInput) filterInputEl.blur()
+        if (inInput) filterInputEl.blur();
         return;
     }
 
