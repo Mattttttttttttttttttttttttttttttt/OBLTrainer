@@ -626,7 +626,7 @@ let intervalId = null;
 let isRunning = false;
 let readyToStart = false;
 let otherKeyPressed = 0;
-const startDelay = 0;
+const startDelay = 200;
 
 let currentCase = "";
 
@@ -708,11 +708,7 @@ function getLocalStorageData() {
             selectOBL(k);
             updateSelCount();
         }
-        if (eachCaseEl.checked) {
-            enableGoEachCase(1);
-        } else {
-            enableGoEachCase(randInt(MIN_EACHCASE, MAX_EACHCASE));
-        }
+        enableGoEachCase();
         generateScramble();
         // if (selectedOBL.length != 0) {
         //     for (let obl of possibleOBL) {
@@ -996,6 +992,7 @@ function passesFilter(obl, filter) {
 }
 
 function generateScramble(regen=false) {
+    let eachCaseAlert = false;
     if (scrambleOffset > 0 && !regen) {
         // user probably timed one of the prev scrams
         displayPrevScram();
@@ -1013,10 +1010,8 @@ function generateScramble(regen=false) {
     }
     if (remainingOBL[usingSpe].length === 0) {
         // start a new cycle
-        let number = eachCaseEl.checked
-            ? 1
-            : randInt(MIN_EACHCASE, MAX_EACHCASE);
-        enableGoEachCase(number);
+        if (eachCaseEl.checked) eachCaseAlert = true;
+        enableGoEachCase();
     }
     let caseNum = randInt(0, remainingOBL[usingSpe].length - 1);
     OBLChoice = remainingOBL[usingSpe].splice(caseNum, 1)[0]; // OBLChoice: "good knight/axe"
@@ -1069,6 +1064,8 @@ function generateScramble(regen=false) {
     }
     if (!hasActiveScramble) timerEl.textContent = "0.00"; // prob for first scram
     hasActiveScramble = true;
+    if (eachCaseAlert)
+        setTimeout(function() {alert("You have gone through each case!");}, 50);
 }
 
 function displayPrevScram() {
@@ -1357,8 +1354,8 @@ function canInteractTimer() {
     );
 }
 
-function enableGoEachCase(count) {
-    eachCase = count;
+function enableGoEachCase() {
+    eachCase = eachCaseEl.checked ? 1 : randInt(MIN_EACHCASE, MAX_EACHCASE);
     remainingOBL[usingSpe] = selectedOBL[usingSpe].flatMap((el) => Array(eachCase).fill(el));
 }
 
@@ -1704,7 +1701,7 @@ window.addEventListener("keydown", (e) => {
             case "e":
                 e.preventDefault();
                 eachCaseEl.checked = !eachCaseEl.checked;
-                toggleEachCase();
+                enableGoEachCase();
                 return;
             case "k":
                 e.preventDefault();
@@ -1797,14 +1794,7 @@ fileEl.addEventListener("change", (e) => {
     reader.readAsText(file);
 });
 
-function toggleEachCase(e = null) {
-    eachCase = eachCaseEl.checked ? 1 : randInt(MIN_EACHCASE, MAX_EACHCASE);
-    if (eachCase == 1) {
-        enableGoEachCase(eachCase);
-    }
-}
-
-eachCaseEl.addEventListener("change", toggleEachCase);
+eachCaseEl.addEventListener("change", (e) => enableGoEachCase());
 
 function removeLast() {
     if (scrambleList.at(-2-scrambleOffset) !== undefined) {
