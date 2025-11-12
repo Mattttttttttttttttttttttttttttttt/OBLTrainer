@@ -1516,15 +1516,26 @@ newListEl.addEventListener("click", () => {
         return;
     }
     let newList = {};
-    for (obl of possibleOBL) {
+    for (let obl of possibleOBL) {
         const n = OBLname(obl);
-        if (selectedOBL.includes(n)) {
-            newList[n] = 1;
-        } else {
-            newList[n] = 0;
-        }
-        userLists[newListName] = newList;
+        newList[n] = 0;
     }
+    if (usingSpe) {
+        if (!confirm("This will map your current selection onto non-specific case naming, "+
+            "which might cause unselected mirrors to be selected.")) return;
+        for (let spe of selectedOBL[1]) {
+            // this might cause 1 to be assigned multiple times but who cares
+            newList[invOBLtranslation(spe)] = 1;
+        }
+    }
+    else {
+        for (let obl of possibleOBL) {
+            const n = OBLname(obl);
+            if (selectedOBL[0].includes(n))
+                newList[n] = 1;
+        }
+    }
+    userLists[newListName] = newList;
     addUserLists();
     setHighlightedList(newListName);
 });
@@ -1547,17 +1558,28 @@ overwriteListEl.addEventListener("click", () => {
     // valid request
     if (confirm("You are about to overwrite list " + highlightedList)) {
         let newList = {};
-        for (obl of possibleOBL) {
+        for (let obl of possibleOBL) {
             const n = OBLname(obl);
-            if (selectedOBL.includes(n)) {
-                newList[n] = 1;
-            } else {
-                newList[n] = 0;
-            }
-            userLists[highlightedList] = newList;
+            newList[n] = 0;
         }
+        if (usingSpe) {
+            if (!confirm("This will map your current selection onto non-specific case naming, "+
+                "which might cause unselected mirrors to be selected.")) return;
+            for (let spe of selectedOBL[1]) {
+                // this might cause 1 to be assigned multiple times but who cares
+                newList[invOBLtranslation(spe)] = 1;
+            }
+        }
+        else {
+            for (let obl of possibleOBL) {
+                const n = OBLname(obl);
+                if (selectedOBL[0].includes(n))
+                    newList[n] = 1;
+            }
+        }
+        userLists[highlightedList] = newList;
         addUserLists();
-        selectList(highlightedList, false);
+        selectList(highlightedList, true);
         highlightedList = null;
         closePopup();
     }
