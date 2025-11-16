@@ -184,7 +184,7 @@ const HIGHKARN = {
 // if the following moves accur, replace them with optimized ones
 // UPDATE THIS
 const OPTIM = {
-    // longest first
+    "/0,0/": "", // special case, handled in optimize()
     "/3,3/3,3/": "-3,-3/-3,-3",
     "/-3,-3/-3,-3/": "3,3/3,3",
     "/2,2/-2,-2/": "2,2/-2,-2",
@@ -313,7 +313,19 @@ function legalMove(move) {
 }
 
 function addMoves(move1, move2) {
-    // move1/2: "3,-3"
+    // move1/2: "3,-3" or "A", "a"; cannot both be alignments
+    let alignments = false;
+    let startA;
+    if (move1.toLowerCase() === "a" || move2.toLowerCase() === "a") {
+        alignments = true;
+        let Atranslation = {"A": "a", "a": "A"};
+        if (move1 in Atranslation) {
+            return changesAlignment(parseInt(move2.split(",")[0], 10)) ? Atranslation[move1] : move1;
+        }
+        if (move2 in Atranslation) {
+            return changesAlignment(parseInt(move1.split(",")[0], 10)) ? Atranslation[move2] : move2;
+        }
+    }
     move1 = move1.split(",");
     move2 = move2.split(",");
     result = [legalMove(parseInt(move1[0],10) + parseInt(move2[0],10)),
@@ -339,32 +351,19 @@ function optimize(scramble) {
                 if (scramble.length - 1-i < optimable.length) continue;
                 if (scramble.slice(i, i+optimable.length) === optimable) {
                     // match!!
+                    if (optimable === "/0,0/") {
+                        // special case
+                        moves[atSlice-1] = addMoves(moves[atSlice-1], moves[atSlice]);
+                        moves.splice(atSlice, 1);
+                        scramble = moves.join("/")
+                        cycleCompleted = true;
+                        break;
+                    }
                     let optimableLen = optimable.split("/").length;
                     let optimTo = OPTIM[optimable].split("/"); // no slice at beginning/end
                     let delSliceNum = optimableLen - 2;
-                    if (atSlice === 1) {
-                        // we at the beginning; not at the end
-                        if (changesAlignment(optimTo.shift().split(",")[0])) {
-                            moves[0] = moves[0] === "a" ? "A" : "a";
-                        }
-                        // else no change
-                        // now we add the end move to the next move
-                        moves[atSlice+optimableLen-2] = addMoves(moves[atSlice+optimableLen-2], optimTo.pop());
-                    }
-                    else if (atSlice + optimableLen -1 === moves.length) {
-                        // -1 cuz it starts&ends with slice
-                        // we at the end; not at the beginning
-                        if (changesAlignment(optimTo.pop().split(",")[0])) {
-                            moves.push(moves.pop() === "a" ? "A" : "a");
-                        }
-                        // else no change
-                        // now we add the first move to the previous move
-                        moves[atSlice-1] = addMoves(moves[atSlice-1], optimTo.shift());
-                    }
-                    else {
-                        moves[atSlice-1] = addMoves(moves[atSlice-1], optimTo.shift());
-                        moves[atSlice+optimableLen-2] = addMoves(moves[atSlice+optimableLen-2], optimTo.pop());
-                    }
+                    moves[atSlice-1] = addMoves(moves[atSlice-1], optimTo.shift());
+                    moves[atSlice+optimableLen-2] = addMoves(moves[atSlice+optimableLen-2], optimTo.pop());
                     // now optimTo has the two merged moves removed
                     moves.splice(atSlice, delSliceNum, ...optimTo);
                     scramble = moves.join("/")
