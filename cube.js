@@ -1079,13 +1079,6 @@ function displayPrevScram() {
     }
 }
 
-function showAll() {
-    for (let obl of possibleOBL) {
-        showOBL(OBLname(obl));
-    }
-    updateSelCount();
-}
-
 function hideOBL(text) {
     document.getElementById(text).classList.add("hidden");
 }
@@ -1404,7 +1397,7 @@ deselectAllEl.addEventListener("click", deselectAll);
 
 function selectThese() {
     if (usingTimer()) return;
-    for (i of OBLListEl.children) {
+    for (let i of OBLListEl.children) {
         if (!i.classList.contains("hidden")) {
             selectOBL(i.id);
         }
@@ -1416,7 +1409,7 @@ selectTheseEl.addEventListener("click", selectThese);
 
 function deselectThese() {
     if (usingTimer()) return;
-    for (i of OBLListEl.children) {
+    for (let i of OBLListEl.children) {
         if (!i.classList.contains("hidden")) {
             deselectOBL(i.id);
         }
@@ -1426,22 +1419,25 @@ function deselectThese() {
 
 deselectTheseEl.addEventListener("click", deselectThese);
 
-function showAllClick() {
+function showAll() {
     if (usingTimer()) return;
-    showAll();
+    for (let i of OBLListEl.children) {
+        if (i.classList.contains("hidden")) {
+            showOBL(i.id);
+        }
+    }
+    updateSelCount();
 }
 
-showAllEl.addEventListener("click", showAllClick);
+showAllEl.addEventListener("click", showAll);
 
 function showSelection() {
     if (usingTimer()) return;
-    for (obl of possibleOBL) {
-        const n = OBLname(obl);
-        if (selectedOBL.includes(n)) {
-            showOBL(n);
-        } else {
-            hideOBL(n);
+    for (let i of OBLListEl.children) {
+        if (selectedOBL[usingSpe].includes(i.id)) {
+            showOBL(i.id);
         }
+        else hideOBL(i.id);
     }
     updateSelCount();
 }
