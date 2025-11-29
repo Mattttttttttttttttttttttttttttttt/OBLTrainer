@@ -1307,15 +1307,15 @@ function selectList(listName, setSelection) {
         hideAll(); // hide all then show cases that come up to map correctly
         if (!listSpe){
             func = usingSpe ?
-                (obl, inlist) => {if (inlist) showOBL(obl);} :
                 (obl, inlist) => {
                     for (spe of getSpe(obl)) if (inlist) showOBL(spe);
-                };
+                } :
+                (obl, inlist) => {if (inlist) showOBL(obl);};
         }
         else {
             func = usingSpe ?
-                (obl, inlist) => {if (inlist) showOBL(obl);} :
-                (obl, inlist) => {if (inlist) showOBL(getNonSpe(obl));};
+                (obl, inlist) => {if (inlist) showOBL(getNonSpe(obl));} :
+                (obl, inlist) => {if (inlist) showOBL(obl);};
         }
     }
 
