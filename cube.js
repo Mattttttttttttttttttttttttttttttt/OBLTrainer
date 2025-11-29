@@ -696,6 +696,7 @@ function listLength(list) {
     for (let i of Object.values(list)) {
         l += i;
     }
+    l -= list["spe"]; // if spe was 1, l is 1 too high
     return l;
 }
 
@@ -1250,7 +1251,7 @@ function addUserLists() {
         content += `
         <div id="${k}" class=\"list-item\">${k} (${listLength(
             userLists[k]
-        )})</div>`;
+        )}${userLists[k]["spe"] ? ", specific case naming": ""})</div>`;
     }
     userListsEl.innerHTML = content;
     for (let item of document.querySelectorAll("#userlists>.list-item")) {
@@ -1302,7 +1303,6 @@ function selectList(listName, setSelection) {
                 (obl, inlist) => {if (inlist) selectOBL(obl);} :
                 (obl, inlist) => {if (inlist) selectOBL(getNonSpe(obl));};
         }
-        selCountEl.textContent = "Selected list: "+listName;
     } else {
         hideAll(); // hide all then show cases that come up to map correctly
         if (!listSpe){
@@ -1317,7 +1317,6 @@ function selectList(listName, setSelection) {
                 (obl, inlist) => {if (inlist) showOBL(obl);} :
                 (obl, inlist) => {if (inlist) showOBL(getNonSpe(obl));};
         }
-        selCountEl.textContent = "Viewing list: "+listName;
     }
 
     for (let [obl, inlist] of Object.entries(list)) {
@@ -1325,6 +1324,8 @@ function selectList(listName, setSelection) {
         func(obl, inlist);
     }
 
+    selCountEl.textContent = setSelection ? "Selected list: "+listName :
+                                            "Viewing list: "+listName;
     saveSelectedOBL();
     saveUserLists();
 }
@@ -1546,8 +1547,7 @@ newListEl.addEventListener("click", () => {
     }
     let newList = {};
     for (let obl of OBLListEl.children) {
-        const n = OBLname(obl);
-        newList[n] = 0;
+        newList[obl.id] = 0;
     }
     for (let obl of selectedOBL[usingSpe]) newList[obl] = 1;
     newList["spe"] = usingSpe; 
@@ -1590,8 +1590,7 @@ overwriteListEl.addEventListener("click", () => {
     if (confirm("You are about to overwrite list " + highlightedList)) {
         let newList = {};
         for (let obl of OBLListEl.children) {
-            const n = OBLname(obl);
-            newList[n] = 0;
+            newList[obl.id] = 0;
         }
         for (let obl of selectedOBL[usingSpe]) newList[obl] = 1;
         newList["spe"] = usingSpe; 
