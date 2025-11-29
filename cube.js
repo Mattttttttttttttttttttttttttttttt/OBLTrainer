@@ -725,7 +725,12 @@ function getLocalStorageData() {
     const storageUserLists = localStorage.getItem("userLists");
     if (storageUserLists !== null) {
         userLists = JSON.parse(storageUserLists);
-        addUserLists();
+        for (let listName in Object.keys(userLists)) {
+            if (!Object.keys(userLists[listName]).includes("spe")) {
+                userLists[listName]["spe"] = 0; // from an older version where we didn't support specific lists
+            }
+        }
+        addUserLists(); // TODO completed
     }
 }
 
@@ -805,8 +810,30 @@ function addCaseButtons() {
     });
 }
 
+function getNonSpe(obl) {
+    // obl in english, is a specific case name
+    // to speed things up a little, we first generate the possible nonspe cases, then we look at OBLtranslation
+    // returns: string (non specific is unique)
+    oblLst = obl.split("/"); // len = 2
+    let uOBL = oblLst[0].split(" ").at(-1);
+    let dOBL = oblLst[1].split(" ").at(-1);
+    let candidates = []; // filled with obl names in english
+    for (let cand of possibleOBL) {
+        if (cand.includes(uOBL) && cand.includes(dOBL)) candidates.push(OBLname(cand))
+    }
+    for (let cand of candidates) {
+        for (let speOBL of OBLtranslation[cand]) {
+            if (speOBL === obl) return cand;
+            speOBL = speOBL.split("/")
+            if (speOBL[1]+"/"+speOBL[0] === obl) return cand; // layer flip
+        }
+    }
+    throw Error("no non-specific OBL found for: "+obl);
+}
+
 function getSpe(obl) {
     // obl in english
+    // returns: an array of specific cases
     let ret = [];
     for (spec of OBLtranslation[obl]) {
         ret.push(spec);
@@ -879,7 +906,7 @@ function checkFirstWord(word, g, filter, u, d) {
 }
 
 function passesFilter(obl, filter) {
-    // obl is the name of a .case element TODO
+    // obl is the name of a .case element
     if (filter === "") return true;
     filter = filter.replace("/", " ").toLowerCase().split(" ");
     if (usingSpe) {
@@ -1252,53 +1279,72 @@ function selectList(listName, setSelection) {
         return;
     }
     let list;
-    if (Object.keys(defaultLists).includes(listName)) {
+    let isDefault = Object.keys(defaultLists).includes(listName);
+    if (isDefault) {
         list = defaultLists[listName];
     } else {
-        list = userLists[listName];
+        list = userLists[listName]; // TODO completed
     }
+    let listSpe = list["spe"];
     if (setSelection) {
-        for (let [obl, inlist] of Object.entries(list)) {
-            if (!usingSpe) {
-                if (inlist) {
-                    // showOBL(obl);
-                    selectOBL(obl);
+        if (!listSpe){
+            for (let [obl, inlist] of Object.entries(list)) {
+                if (obl === "spe") continue;
+                if (!usingSpe) {
+                    if (inlist) selectOBL(obl);
+                    else deselectOBL(obl);
                 }
                 else {
-                //     hideOBL(obl);
-                    deselectOBL(obl);
+                    for (spe of getSpe(obl)) {
+                        if (inlist) selectOBL(spe);
+                        else deselectOBL(spe);
+                    }
                 }
             }
-            else {
-                for (spe of getSpe(obl)) {
+        }
+        else {
+            deselectAll(); // deselect all then select cases that come up to map correctly
+            for (let [obl, inlist] of Object.entries(list)) {
+                if (obl === "spe") continue;
+                if (!usingSpe) {
                     if (inlist) {
-                        selectOBL(spe);
+                        selectOBL(getNonSpe(obl));
                     }
-                    else {
-                        deselectOBL(spe);
-                    }
+                }
+                else {
+                    if (inlist) selectOBL(obl);
                 }
             }
         }
         saveSelectedOBL();
         selCountEl.textContent = "Selected list: "+listName;
     } else {
-        for (let [obl, inlist] of Object.entries(list)) {
-            if (!usingSpe){
-                if (inlist) {
-                    showOBL(obl);
-                } else {
-                    hideOBL(obl);
+        if (!listSpe){
+            for (let [obl, inlist] of Object.entries(list)) {
+                if (obl === "spe") continue;
+                if (!usingSpe) {
+                    if (inlist) showOBL(obl);
+                    else hideOBL(obl);
+                }
+                else {
+                    for (spe of getSpe(obl)) {
+                        if (inlist) showOBL(spe);
+                        else hideOBL(spe);
+                    }
                 }
             }
-            else {
-                for (spe of getSpe(obl)) {
+        }
+        else {
+            hideAll(); // hide all then show cases that come up to map correctly
+            for (let [obl, inlist] of Object.entries(list)) {
+                if (obl === "spe") continue;
+                if (!usingSpe) {
                     if (inlist) {
-                        showOBL(spe);
+                        showOBL(getNonSpe(obl));
                     }
-                    else {
-                        hideOBL(spe);
-                    }
+                }
+                else {
+                    if (inlist) showOBL(obl);
                 }
             }
         }
@@ -1421,6 +1467,16 @@ function deselectThese() {
 
 deselectTheseEl.addEventListener("click", deselectThese);
 
+function hideAll() {
+    if (usingTimer()) return;
+    for (let i of OBLListEl.children) {
+        if (!i.classList.contains("hidden")) {
+            hideOBL(i.id);
+        }
+    }
+    updateSelCount();
+}
+
 function showAll() {
     if (usingTimer()) return;
     for (let i of OBLListEl.children) {
@@ -1513,25 +1569,27 @@ newListEl.addEventListener("click", () => {
         return;
     }
     let newList = {};
-    for (let obl of possibleOBL) {
+    for (let obl of OBLListEl.children) {
         const n = OBLname(obl);
         newList[n] = 0;
     }
-    if (usingSpe) {
-        if (!confirm("This will map your current selection onto non-specific case naming, "+
-            "which might cause unselected mirrors to be selected.")) return;
-        for (let spe of selectedOBL[1]) {
-            // this might cause 1 to be assigned multiple times but who cares
-            newList[invOBLtranslation(spe)] = 1;
-        }
-    }
-    else {
-        for (let obl of possibleOBL) {
-            const n = OBLname(obl);
-            if (selectedOBL[0].includes(n))
-                newList[n] = 1;
-        }
-    }
+    for (let obl of selectedOBL[usingSpe]) newList[obl] = 1;
+    newList["spe"] = usingSpe; 
+    // if (usingSpe) {
+    //     if (!confirm("This will map your current selection onto non-specific case naming, "+
+    //         "which might cause unselected mirrors to be selected.")) return; // TODO
+    //     for (let spe of selectedOBL[1]) {
+    //         // this might cause 1 to be assigned multiple times but who cares
+    //         newList[invOBLtranslation(spe)] = 1;
+    //     }
+    // }
+    // else {
+    //     for (let obl of possibleOBL) {
+    //         const n = OBLname(obl);
+    //         if (selectedOBL[0].includes(n))
+    //             newList[n] = 1;
+    //     }
+    // }
     userLists[newListName] = newList;
     addUserLists();
     setHighlightedList(newListName);
@@ -1555,25 +1613,27 @@ overwriteListEl.addEventListener("click", () => {
     // valid request
     if (confirm("You are about to overwrite list " + highlightedList)) {
         let newList = {};
-        for (let obl of possibleOBL) {
+        for (let obl of OBLListEl.children) {
             const n = OBLname(obl);
             newList[n] = 0;
         }
-        if (usingSpe) {
-            if (!confirm("This will map your current selection onto non-specific case naming, "+
-                "which might cause unselected mirrors to be selected.")) return;
-            for (let spe of selectedOBL[1]) {
-                // this might cause 1 to be assigned multiple times but who cares
-                newList[invOBLtranslation(spe)] = 1;
-            }
-        }
-        else {
-            for (let obl of possibleOBL) {
-                const n = OBLname(obl);
-                if (selectedOBL[0].includes(n))
-                    newList[n] = 1;
-            }
-        }
+        for (let obl of selectedOBL[usingSpe]) newList[obl] = 1;
+        newList["spe"] = usingSpe; 
+        // if (usingSpe) {
+        //     if (!confirm("This will map your current selection onto non-specific case naming, "+
+        //         "which might cause unselected mirrors to be selected.")) return; // TODO
+        //     for (let spe of selectedOBL[1]) {
+        //         // this might cause 1 to be assigned multiple times but who cares
+        //         newList[invOBLtranslation(spe)] = 1;
+        //     }
+        // }
+        // else {
+        //     for (let obl of possibleOBL) {
+        //         const n = OBLname(obl);
+        //         if (selectedOBL[0].includes(n))
+        //             newList[n] = 1;
+        //     }
+        // }
         userLists[highlightedList] = newList;
         addUserLists();
         selectList(highlightedList, true);

@@ -72,7 +72,8 @@
         "bad N/N": 0,
         "tie/N": 0,
         "good tie/tie": 0,
-        "bad tie/tie": 0
+        "bad tie/tie": 0,
+        "spe": 0
     },
     "2 slicers": {
         "1c/1c": 0,
@@ -147,7 +148,8 @@
         "bad N/N": 0,
         "tie/N": 0,
         "good tie/tie": 0,
-        "bad tie/tie": 0
+        "bad tie/tie": 0,
+        "spe": 0
     },
     "3 slicers": {
         "1c/1c": 0,
@@ -222,7 +224,8 @@
         "bad N/N": 0,
         "tie/N": 0,
         "good tie/tie": 1,
-        "bad tie/tie": 0
+        "bad tie/tie": 0,
+        "spe": 0
     },
     "4 slicers": {
         "1c/1c": 0,
@@ -297,7 +300,8 @@
         "bad N/N": 1,
         "tie/N": 0,
         "good tie/tie": 0,
-        "bad tie/tie": 1
+        "bad tie/tie": 1,
+        "spe": 0
     },
     "5 slicers": {
         "1c/1c": 1,
@@ -372,7 +376,8 @@
         "bad N/N": 0,
         "tie/N": 1,
         "good tie/tie": 0,
-        "bad tie/tie": 0
+        "bad tie/tie": 0,
+        "spe": 0
     },
     "6 slicers": {
         "1c/1c": 0,
@@ -447,6 +452,7 @@
         "bad N/N": 0,
         "tie/N": 0,
         "good tie/tie": 0,
-        "bad tie/tie": 0
+        "bad tie/tie": 0,
+        "spe": 0
     }
 }
