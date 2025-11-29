@@ -353,8 +353,8 @@ function optimize(scramble) {
                     // match!!
                     if (optimable === "/0,0/") {
                         // special case
-                        moves[atSlice-1] = addMoves(moves[atSlice-1], moves[atSlice]);
-                        moves.splice(atSlice, 1);
+                        moves[atSlice-1] = addMoves(moves[atSlice-1], moves[atSlice+1]);
+                        moves.splice(atSlice, 2);
                         scramble = moves.join("/")
                         cycleCompleted = true;
                         break;
@@ -417,7 +417,9 @@ function getScramble(obl) {
                 isOBL(state.slice(LAYERL), u))) {
                 currentA = topA ? "A" : "a";
                 moves += currentA;
+                console.log("preoptim moves "+moves);
                 moves = optimize(moves);
+                console.log("postoptim moves "+moves);
                 return [moves, karnify(moves)];
             }
         }
