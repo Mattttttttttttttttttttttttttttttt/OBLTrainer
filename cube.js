@@ -587,7 +587,7 @@ let OBLtranslation = {
 }
 
 function invOBLtranslation(spec) {
-    // spec: ""black tie/left N"
+    // spec: "black tie/left N"
     // return: "tie/N"
     for (nonSpec in OBLtranslation) {
         if (OBLtranslation[nonSpec].includes(spec) ||
@@ -725,7 +725,7 @@ function getLocalStorageData() {
     const storageUserLists = localStorage.getItem("userLists");
     if (storageUserLists !== null) {
         userLists = JSON.parse(storageUserLists);
-        for (let listName in Object.keys(userLists)) {
+        for (let listName of Object.keys(userLists)) {
             if (!Object.keys(userLists[listName]).includes("spe")) {
                 userLists[listName]["spe"] = 0; // from an older version where we didn't support specific lists
             }
@@ -1286,70 +1286,46 @@ function selectList(listName, setSelection) {
         list = userLists[listName]; // TODO completed
     }
     let listSpe = list["spe"];
+    // in this next part, func details what we do for each obl, and then we run a loop with it.
+    let func;
     if (setSelection) {
-        if (!listSpe){
-            for (let [obl, inlist] of Object.entries(list)) {
-                if (obl === "spe") continue;
-                if (!usingSpe) {
-                    if (inlist) selectOBL(obl);
-                    else deselectOBL(obl);
-                }
-                else {
-                    for (spe of getSpe(obl)) {
-                        if (inlist) selectOBL(spe);
-                        else deselectOBL(spe);
-                    }
-                }
-            }
+        deselectAll(); // deselect all then select cases that come up to map correctly
+        if (!listSpe) {
+            func = usingSpe ? 
+                (obl, inlist) => {
+                    for (let spe of getSpe(obl)) if (inlist) selectOBL(spe);
+                } : 
+                (obl, inlist) => {if (inlist) selectOBL(obl)};
         }
         else {
-            deselectAll(); // deselect all then select cases that come up to map correctly
-            for (let [obl, inlist] of Object.entries(list)) {
-                if (obl === "spe") continue;
-                if (!usingSpe) {
-                    if (inlist) {
-                        selectOBL(getNonSpe(obl));
-                    }
-                }
-                else {
-                    if (inlist) selectOBL(obl);
-                }
-            }
+            func = usingSpe ?
+                (obl, inlist) => {if (inlist) selectOBL(obl);} :
+                (obl, inlist) => {if (inlist) selectOBL(getNonSpe(obl));};
         }
-        saveSelectedOBL();
         selCountEl.textContent = "Selected list: "+listName;
     } else {
+        hideAll(); // hide all then show cases that come up to map correctly
         if (!listSpe){
-            for (let [obl, inlist] of Object.entries(list)) {
-                if (obl === "spe") continue;
-                if (!usingSpe) {
-                    if (inlist) showOBL(obl);
-                    else hideOBL(obl);
-                }
-                else {
-                    for (spe of getSpe(obl)) {
-                        if (inlist) showOBL(spe);
-                        else hideOBL(spe);
-                    }
-                }
-            }
+            func = usingSpe ?
+                (obl, inlist) => {if (inlist) showOBL(obl);} :
+                (obl, inlist) => {
+                    for (spe of getSpe(obl)) if (inlist) showOBL(spe);
+                };
         }
         else {
-            hideAll(); // hide all then show cases that come up to map correctly
-            for (let [obl, inlist] of Object.entries(list)) {
-                if (obl === "spe") continue;
-                if (!usingSpe) {
-                    if (inlist) {
-                        showOBL(getNonSpe(obl));
-                    }
-                }
-                else {
-                    if (inlist) showOBL(obl);
-                }
-            }
+            func = usingSpe ?
+                (obl, inlist) => {if (inlist) showOBL(obl);} :
+                (obl, inlist) => {if (inlist) showOBL(getNonSpe(obl));};
         }
         selCountEl.textContent = "Viewing list: "+listName;
     }
+
+    for (let [obl, inlist] of Object.entries(list)) {
+        if (obl === "spe") continue;
+        func(obl, inlist);
+    }
+
+    saveSelectedOBL();
     saveUserLists();
 }
 
