@@ -1249,9 +1249,7 @@ function addUserLists() {
     let content = "";
     for (k of Object.keys(userLists)) {
         content += `
-        <div id="${k}" class=\"list-item\">${k} (${listLength(
-            userLists[k]
-        )}${userLists[k]["spe"] ? ", specific case naming": ""})</div>`;
+        <div id="${k}" class=\"list-item\">${k} (${listLength(userLists[k][usingSpe])})</div>`;
     }
     userListsEl.innerHTML = content;
     for (let item of document.querySelectorAll("#userlists>.list-item")) {
@@ -1870,6 +1868,7 @@ karnEl.addEventListener("change", toggleKarn);
 
 function toggleSpecific(e = null) {
     usingSpe ^= 1; // switches between 0 and 1 with XOR
+    addUserLists();
     if (usingSpe) {
         // good/bad → left/right
         OBLListEl.innerHTML = buttons[usingSpe];
@@ -1908,3 +1907,4 @@ speEl.addEventListener("change", toggleSpecific);
 for (let cross of document.querySelectorAll(".cross")) {
     cross.addEventListener("click", () => closePopup());
 }
+
