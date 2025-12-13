@@ -586,17 +586,6 @@ let OBLtranslation = {
     "bad tie/tie": ["black tie/white tie"]
 }
 
-function invOBLtranslation(spec) {
-    // spec: "black tie/left N"
-    // return: "tie/N"
-    for (nonSpec in OBLtranslation) {
-        if (OBLtranslation[nonSpec].includes(spec) ||
-            OBLtranslation[nonSpec].includes(spec.split("/")[1]+"/"+spec.split("/")[0]))
-            return nonSpec;
-    }
-    throw Error("spec: "+spec+" not in OBLtranslation");
-}
-
 let selectedOBL = [[], []]; // [[oblidgood/bad], [oblidleft/right]]
 let scrambleList = []; // [[normal, karn], etc.]
 
@@ -649,6 +638,7 @@ const filterInputEl = document.getElementById("filter");
 const eachCaseEl = document.getElementById("allcases");
 const karnEl = document.getElementById("karn");
 const speEl = document.getElementById("specific");
+const settingList = [eachCaseEl, karnEl, speEl];
 const removeLastEl = document.getElementById("unselprev");
 
 // Selection buttons
@@ -691,21 +681,13 @@ function OBLname(obl) {
     return obl[0] ? `${obl[0]} ${obl[1]}/${obl[2]}` : `${obl[1]}/${obl[2]}`;
 }
 
-function listLength(list) {
-    let l = 0;
-    for (let i of Object.values(list)) {
-        l += i;
-    }
-    l -= list["spe"]; // if spe was 1, l is 1 too high
-    return l;
-}
-
 function getLocalStorageData() {
     // selectedOBL
     const storageSelectedOBL = localStorage.getItem("selectedOBL");
     if (storageSelectedOBL !== null) {
         selectedOBL = JSON.parse(storageSelectedOBL);
-        if (selectedOBL.length !== 2) selectedOBL = [selectedOBL, []];
+        if (selectedOBL.length !== 2)
+            selectedOBL = [selectedOBL, []]; // legacy
         for (let k of selectedOBL[usingSpe]) {
             selectOBL(k);
             updateSelCount();
@@ -726,35 +708,46 @@ function getLocalStorageData() {
     const storageUserLists = localStorage.getItem("userLists");
     if (storageUserLists !== null) {
         userLists = JSON.parse(storageUserLists);
-        for (let listName of Object.keys(userLists)) {
-            if (!Object.keys(userLists[listName]).includes("spe")) {
-                userLists[listName]["spe"] = 0; // from an older version where we didn't support specific lists
+        // LEGACY: convert list to new array format
+        for (listName of Object.keys(userLists)) {
+            if (!Array.isArray(userLists[listName])) {
+                // legacy: add "spe" element
+                if (!Object.keys(userLists[listName]).includes("spe"))
+                    userLists[listName]["spe"] = 0;
+                console.log("Legacy user list");
+                let formattedList = [[], []]
+                for (let i of possibleOBL)
+                    if (userLists[listName][OBLname(i)] == 1)
+                        formattedList.push(OBLname(i));
+                userLists[list] = formattedList.copyWithin();
             }
         }
-        addUserLists(); // TODO completed
+        addUserLists();
     }
+
+    // settings; in a string, 0 and 1 represent (un)checked, in order of preferenceList
+    const storageSettings = localStorage.getItem("settings");
+    if (storageSettings === null)
+        // legacy
+        localStorage.setItem("settings", "0".repeat(settingList.length));
+    else
+        for (let i = 0; i < settingList.length; i++)
+            if (storageSettings[i] === "1") settingList[i].click();
 }
 
 function saveSelectedOBL() {
     // convert the selectedOBL to the other list
-    if (!usingSpe) {
+    if (!usingSpe) 
         // good/bad → left/right
-        selectedOBL[1] = [];
-        for (let nonspe of selectedOBL[0]) {
-            for (spe of getSpe(nonspe)){
-                selectedOBL[1].push(spe);
-            }
-        }
-    }
-    else {
+        selectedOBL[1] = [...getSpeList(selectedOBL[0])];
+        // for (let nonspe of selectedOBL[0]) {
+        //     for (spe of getSpe(nonspe)){
+        //         selectedOBL[1].push(spe);
+        //     }
+        // }
+    else
         // left/right → good/bad
-        selectedOBL[0] = [];
-        for (let spe of selectedOBL[1]) {
-            if (!selectedOBL[0].includes(invOBLtranslation(spe))) {
-                selectedOBL[0].push(invOBLtranslation(spe));
-            }
-        }
-    }
+        selectedOBL[0] = [...getNonSpeList(selectedOBL[1])];
 
     localStorage.setItem("selectedOBL", JSON.stringify(selectedOBL));
     // this is === 0 cuz genScram() has a if statement that deletes the scram if so
@@ -762,12 +755,22 @@ function saveSelectedOBL() {
     else if (!(selectedOBL[usingSpe].includes(currentCase)) && currentCase != "") generateScramble(true);
 }
 
-function updateSelCount() {
-    selCountEl.textContent = "Selected: "+selectedOBL[usingSpe].length;
-}
-
 function saveUserLists() {
     localStorage.setItem("userLists", JSON.stringify(userLists));
+}
+
+function saveSettings() {
+    let store = "";
+    for (let el of settingList)
+        if (el.checked)
+            store += "1";
+        else
+            store += "0";
+    localStorage.setItem("settings", store);
+}
+
+function updateSelCount() {
+    selCountEl.textContent = "Selected: "+selectedOBL[usingSpe].length;
 }
 
 function setHighlightedList(id) {
@@ -811,34 +814,24 @@ function addCaseButtons() {
     });
 }
 
-function getNonSpe(obl) {
-    // obl in english, is a specific case name
-    // to speed things up a little, we first generate the possible nonspe cases, then we look at OBLtranslation
-    // returns: string (non specific is unique)
-    oblLst = obl.split("/"); // len = 2
-    let uOBL = oblLst[0].split(" ").at(-1);
-    let dOBL = oblLst[1].split(" ").at(-1);
-    let candidates = []; // filled with obl names in english
-    for (let cand of possibleOBL) {
-        if (cand.includes(uOBL) && cand.includes(dOBL)) candidates.push(OBLname(cand))
+function getNonSpe(spec) {
+    // spec: "black tie/left N"
+    // return: "tie/N"
+    for (let nonSpec in OBLtranslation) {
+        if (OBLtranslation[nonSpec].includes(spec) ||
+            OBLtranslation[nonSpec].includes(spec.split("/")[1]+"/"+spec.split("/")[0]))
+            return nonSpec;
     }
-    for (let cand of candidates) {
-        for (let speOBL of OBLtranslation[cand]) {
-            if (speOBL === obl) return cand;
-            speOBL = speOBL.split("/")
-            if (speOBL[1]+"/"+speOBL[0] === obl) return cand; // layer flip
-        }
-    }
-    throw Error("no non-specific OBL found for: "+obl);
+    throw Error("spec: "+spec+" not in OBLtranslation");
 }
 
 function getSpe(obl) {
     // obl in english
     // returns: an array of specific cases
     let ret = [];
-    for (spec of OBLtranslation[obl]) {
+    for (let spec of OBLtranslation[obl]) {
         ret.push(spec);
-        spec2 = spec.split("/")[1] + "/" + spec.split("/")[0];
+        let spec2 = spec.split("/")[1] + "/" + spec.split("/")[0];
         if (spec2 !== spec) {
             ret.push(spec2)
         }
@@ -846,7 +839,27 @@ function getSpe(obl) {
     return ret;
 }
 
+function getNonSpeList(l) {
+    // l: a list of specific obls in english
+    // returns: a list of non-specific obls in english
+    let ret_repeats = [];
+    for (let obl of l)
+        ret_repeats.push(getNonSpe(obl));
+    return [...new Set(ret_repeats)];
+}
+
+function getSpeList(l) {
+    // l: a list of non-specific obls in english
+    // returns: a list of specific obls in english
+    let ret = [];
+    for (let obl of l)
+        ret.push(...getSpe(obl));
+    return ret;
+}
+
 async function init() {
+    // Add buttons to the page for each OBL choice
+    // Stored to a temp variable so we edit the page only once, and prevent a lag spike
     let buttons1 = "";
     let buttons2 = "";
     for (let obl of possibleOBL) {
@@ -860,14 +873,9 @@ async function init() {
     buttons = [buttons1, buttons2];
     OBLListEl.innerHTML = buttons[usingSpe];
 
-    getLocalStorageData();
-
     lastRemoved = "";
 
-
-    // Add buttons to the page for each OBL choice
-    // Stored to a temp variable so we edit the page only once, and prevent a lag spike
-
+    getLocalStorageData();
     addCaseButtons();
 
     // Load default lists
@@ -880,6 +888,8 @@ async function init() {
         })
         .then((data) => {
             defaultLists = data;
+            for (let l in defaultLists)
+                defaultLists[l] = [defaultLists[l], getSpeList(defaultLists[l])]
             addDefaultLists();
         })
         .catch((error) => console.error("Failed to fetch data:", error));
@@ -978,10 +988,10 @@ function passesFilter(obl, filter) {
         }
         if ("bad".startsWith(filter[0])) {
             result_from_good_bad = checkFirstWord("bad", g, filter, u, d);
-        };
+        }
         if ("same".startsWith(filter[0])) {
             result_from_good_bad = checkFirstWord("same", g, filter, u, d);
-        };
+        }
         if ("different".startsWith(filter[0])) {
             // make "different" count also
             if (g != "diff") return false;
@@ -1004,7 +1014,7 @@ function passesFilter(obl, filter) {
                     }
                 }
             }
-        };
+        }
         // from here, filter's g = ""
         a = filter[0]
         // only top case:
@@ -1017,7 +1027,7 @@ function passesFilter(obl, filter) {
                     (d == a && u.startsWith(b));
         }
         return result_from_good_bad || result_from_non_good_bad;
-}
+    }
 }
 
 function generateScramble(regen=false) {
@@ -1046,7 +1056,6 @@ function generateScramble(regen=false) {
     OBLChoice = remainingOBL[usingSpe].splice(caseNum, 1)[0]; // OBLChoice: "good knight/axe"
 
     currentCase = OBLChoice; // could be either good/bad or left/right
-
     OBLChoice = usingSpe ? OBLChoice : 
             OBLtranslation[OBLChoice][randInt(0, OBLtranslation[OBLChoice].length - 1)];
     scramble = getScramble(OBLChoice);
@@ -1249,9 +1258,9 @@ function addUserLists() {
     let content = "";
     for (k of Object.keys(userLists)) {
         content += `
-        <div id="${k}" class=\"list-item\">${k} (${listLength(
-            userLists[k]
-        )}${userLists[k]["spe"] ? ", specific case naming": ""})</div>`;
+        <div id="${k}" class=\"list-item\">${k} (${
+            userLists[k][usingSpe].length
+        })</div>`;
     }
     userListsEl.innerHTML = content;
     for (let item of document.querySelectorAll("#userlists>.list-item")) {
@@ -1264,9 +1273,9 @@ function addDefaultLists() {
     let content = "";
     for (k of Object.keys(defaultLists)) {
         content += `
-        <div id="${k}" class=\"list-item\">${k} (${listLength(
-            defaultLists[k]
-        )})</div>`;
+        <div id="${k}" class=\"list-item\">${k} (${
+            defaultLists[k][usingSpe].length
+        })</div>`;
     }
     defaultListsEl.innerHTML = content;
     for (let item of document.querySelectorAll("#defaultlists>.list-item")) {
@@ -1274,7 +1283,7 @@ function addDefaultLists() {
     }
 }
 
-function selectList(listName, setSelection) {
+function selectList(listName, setSelection) { // TODO
     if (listName == null) {
         showAll();
         return;
@@ -1284,45 +1293,55 @@ function selectList(listName, setSelection) {
     if (isDefault) {
         list = defaultLists[listName];
     } else {
-        list = userLists[listName]; // TODO completed
-    }
-    let listSpe = list["spe"];
-    // in this next part, func details what we do for each obl, and then we run a loop with it.
-    let func;
-    if (setSelection) {
-        deselectAll(); // deselect all then select cases that come up to map correctly
-        if (!listSpe) {
-            func = usingSpe ? 
-                (obl, inlist) => {
-                    for (let spe of getSpe(obl)) if (inlist) selectOBL(spe);
-                } : 
-                (obl, inlist) => {if (inlist) selectOBL(obl)};
-        }
-        else {
-            func = usingSpe ?
-                (obl, inlist) => {if (inlist) selectOBL(obl);} :
-                (obl, inlist) => {if (inlist) selectOBL(getNonSpe(obl));};
-        }
-    } else {
-        hideAll(); // hide all then show cases that come up to map correctly
-        if (!listSpe){
-            func = usingSpe ?
-                (obl, inlist) => {
-                    for (spe of getSpe(obl)) if (inlist) showOBL(spe);
-                } :
-                (obl, inlist) => {if (inlist) showOBL(obl);};
-        }
-        else {
-            func = usingSpe ?
-                (obl, inlist) => {if (inlist) showOBL(getNonSpe(obl));} :
-                (obl, inlist) => {if (inlist) showOBL(obl);};
-        }
+        list = userLists[listName];
     }
 
-    for (let [obl, inlist] of Object.entries(list)) {
-        if (obl === "spe") continue;
-        func(obl, inlist);
+    hideAll();
+    if (!Array.isArray(list)) location.reload(); // legacy handling
+    for (let obl of list[usingSpe])
+        showOBL(obl);
+    if (setSelection) {
+        deselectAll();
+        selectThese();
     }
+
+    // let listSpe = list["spe"];
+    // // in this next part, func details what we do for each obl, and then we run a loop with it.
+    // let func;
+    // if (setSelection) {
+    //     deselectAll(); // deselect all then select cases that come up to map correctly
+    //     if (!listSpe) {
+    //         func = usingSpe ? 
+    //             (obl, inlist) => {
+    //                 for (let spe of getSpe(obl)) if (inlist) selectOBL(spe);
+    //             } : 
+    //             (obl, inlist) => {if (inlist) selectOBL(obl)};
+    //     }
+    //     else {
+    //         func = usingSpe ?
+    //             (obl, inlist) => {if (inlist) selectOBL(obl);} :
+    //             (obl, inlist) => {if (inlist) selectOBL(getNonSpe(obl));};
+    //     }
+    // } else {
+    //     hideAll(); // hide all then show cases that come up to map correctly
+    //     if (!listSpe){
+    //         func = usingSpe ?
+    //             (obl, inlist) => {
+    //                 for (spe of getSpe(obl)) if (inlist) showOBL(spe);
+    //             } :
+    //             (obl, inlist) => {if (inlist) showOBL(obl);};
+    //     }
+    //     else {
+    //         func = usingSpe ?
+    //             (obl, inlist) => {if (inlist) showOBL(getNonSpe(obl));} :
+    //             (obl, inlist) => {if (inlist) showOBL(obl);};
+    //     }
+    // }
+
+    // for (let [obl, inlist] of Object.entries(list)) {
+    //     if (obl === "spe") continue;
+    //     func(obl, inlist);
+    // }
 
     selCountEl.textContent = setSelection ? "Selected list: "+listName :
                                             "Viewing list: "+listName;
@@ -1545,27 +1564,12 @@ newListEl.addEventListener("click", () => {
         alert("You can't give this name to a list (id taken)");
         return;
     }
-    let newList = {};
-    for (let obl of OBLListEl.children) {
-        newList[obl.id] = 0;
-    }
-    for (let obl of selectedOBL[usingSpe]) newList[obl] = 1;
-    newList["spe"] = usingSpe; 
-    // if (usingSpe) {
-    //     if (!confirm("This will map your current selection onto non-specific case naming, "+
-    //         "which might cause unselected mirrors to be selected.")) return; // TODO
-    //     for (let spe of selectedOBL[1]) {
-    //         // this might cause 1 to be assigned multiple times but who cares
-    //         newList[invOBLtranslation(spe)] = 1;
-    //     }
-    // }
-    // else {
-    //     for (let obl of possibleOBL) {
-    //         const n = OBLname(obl);
-    //         if (selectedOBL[0].includes(n))
-    //             newList[n] = 1;
-    //     }
-    // }
+    // New way of creating a list
+    let newList = [[], []];
+    newList[usingSpe] = selectedOBL[usingSpe].copyWithin();
+    if (usingSpe) newList[0] = getNonSpeList(newList[1]);
+    else newList[1] = getSpeList(newList[0]);
+
     userLists[newListName] = newList;
     addUserLists();
     setHighlightedList(newListName);
@@ -1588,27 +1592,12 @@ overwriteListEl.addEventListener("click", () => {
 
     // valid request
     if (confirm("You are about to overwrite list " + highlightedList)) {
-        let newList = {};
-        for (let obl of OBLListEl.children) {
-            newList[obl.id] = 0;
-        }
-        for (let obl of selectedOBL[usingSpe]) newList[obl] = 1;
-        newList["spe"] = usingSpe; 
-        // if (usingSpe) {
-        //     if (!confirm("This will map your current selection onto non-specific case naming, "+
-        //         "which might cause unselected mirrors to be selected.")) return; // TODO
-        //     for (let spe of selectedOBL[1]) {
-        //         // this might cause 1 to be assigned multiple times but who cares
-        //         newList[invOBLtranslation(spe)] = 1;
-        //     }
-        // }
-        // else {
-        //     for (let obl of possibleOBL) {
-        //         const n = OBLname(obl);
-        //         if (selectedOBL[0].includes(n))
-        //             newList[n] = 1;
-        //     }
-        // }
+        // New way of creating a list
+        let newList = [[], []];
+        newList[usingSpe] = selectedOBL[usingSpe].copyWithin();
+        if (usingSpe) newList[0] = getNonSpeList(newList[1]);
+        else newList[1] = getSpeList(newList[0]);
+        
         userLists[highlightedList] = newList;
         addUserLists();
         selectList(highlightedList, true);
@@ -1754,18 +1743,15 @@ window.addEventListener("keydown", (e) => {
                 return;
             case "e":
                 e.preventDefault();
-                eachCaseEl.checked = !eachCaseEl.checked;
-                enableGoEachCase();
+                eachCaseEl.click();
                 return;
             case "k":
                 e.preventDefault();
-                karnEl.checked = !karnEl.checked;
-                toggleKarn();
+                karnEl.click();
                 return;
             case "s":
                 e.preventDefault();
-                speEl.checked = !speEl.checked;
-                toggleSpecific();
+                speEl.click();
                 return;
         }
     }
@@ -1811,7 +1797,7 @@ toggleUiEl.addEventListener("click", () => {
         sidebarEl.classList.add("hidden");
         sidebarEl.classList.remove("full-width-mobile");
         contentEl.classList.remove("hidden-mobile");
-    }
+    } // TODO defaultlists
 });
 
 downloadEl.addEventListener("click", () => {
@@ -1840,6 +1826,8 @@ fileEl.addEventListener("change", (e) => {
             jsonData = JSON.parse(reader.result);
             localStorage.setItem("selectedOBL", jsonData["selectedOBL"]);
             localStorage.setItem("userLists", jsonData["userLists"]);
+            if ("settings" in jsonData) localStorage.setItem("settings", jsonData["settings"]);
+            else alert("file formatting is outdated, re-export recommended.")
             getLocalStorageData();
         } catch (e) {
             console.error("Error:", e);
@@ -1848,7 +1836,10 @@ fileEl.addEventListener("change", (e) => {
     reader.readAsText(file);
 });
 
-eachCaseEl.addEventListener("change", (e) => enableGoEachCase());
+eachCaseEl.addEventListener("change", (e) => {
+    enableGoEachCase();
+    saveSettings();
+});
 
 function removeLast() {
     if (scrambleList.at(-2-scrambleOffset) !== undefined) {
@@ -1860,15 +1851,14 @@ function removeLast() {
 
 removeLastEl.addEventListener("click", removeLast)
 
-function toggleKarn(e = null) {
+karnEl.addEventListener("change", (e) => {
     usingKarn ^= 1; // switches between 0 and 1 with XOR
     if (hasActiveScramble) currentScrambleEl.textContent = scrambleList.at(-1-scrambleOffset)[usingKarn];
-    displayPrevScram()
-}
+    displayPrevScram();
+    saveSettings();
+});
 
-karnEl.addEventListener("change", toggleKarn);
-
-function toggleSpecific(e = null) {
+speEl.addEventListener("change", (e) => {
     usingSpe ^= 1; // switches between 0 and 1 with XOR
     if (usingSpe) {
         // good/bad → left/right
@@ -1890,19 +1880,20 @@ function toggleSpecific(e = null) {
         filterInputEl.setAttribute("maxlength", 18);
         selectedOBL[0] = [];
         for (let spe of selectedOBL[1]) {
-            if (!selectedOBL[0].includes(invOBLtranslation(spe))) {
-                selectedOBL[0].push(invOBLtranslation(spe));
-                selectOBL(invOBLtranslation(spe));
+            if (!selectedOBL[0].includes(getNonSpe(spe))) {
+                selectedOBL[0].push(getNonSpe(spe));
+                selectOBL(getNonSpe(spe));
             }
         }
         filterInput();
         enableGoEachCase();
     }
     addCaseButtons();
+    addDefaultLists();
+    addUserLists();
     updateSelCount();
-}
-
-speEl.addEventListener("change", toggleSpecific);
+    saveSettings();
+});
 
 // Enable crosses
 for (let cross of document.querySelectorAll(".cross")) {
