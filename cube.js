@@ -686,12 +686,14 @@ function getLocalStorageData() {
     const storageSelectedOBL = localStorage.getItem("selectedOBL");
     if (storageSelectedOBL !== null) {
         selectedOBL = JSON.parse(storageSelectedOBL);
-        if (selectedOBL.length !== 2)
+        if (selectedOBL.length === 0 || typeof selectedOBL[0] === "string"){
             selectedOBL = [selectedOBL, []]; // legacy
+            saveSelectedOBL();
+        }
         for (let k of selectedOBL[usingSpe]) {
             selectOBL(k);
-            updateSelCount();
         }
+        updateSelCount();
         enableGoEachCase();
         generateScramble();
         // if (selectedOBL.length != 0) {
@@ -829,6 +831,7 @@ function getSpe(obl) {
     // obl in english
     // returns: an array of specific cases
     let ret = [];
+    if (!obl in OBLtranslation) throw new Error("not in OBLtranslation: obl: "+obl);
     for (let spec of OBLtranslation[obl]) {
         ret.push(spec);
         let spec2 = spec.split("/")[1] + "/" + spec.split("/")[0];
