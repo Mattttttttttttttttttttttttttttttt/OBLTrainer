@@ -203,8 +203,8 @@ function isOBL(layer, obl) {
     // layer: 12-char string w/ BbWw, in cs
     // obl: a key of OBL dict
     // return: bool
-    // if it's top misalign, change to bottom misalign
     let target = OBL[obl]
+    // if it's top misalign, change to bottom misalign
     if (layer.charAt(0).toUpperCase() !== layer.charAt(0)) layer = shift(layer,-1);
     for (let move = 0; move <= 3; move++) {
         if (target === shift(layer, 3*move)) return true;
@@ -336,7 +336,7 @@ function addMoves(move1, move2) {
 function optimize(scramble) {
     // scramble: "A/-3,-3/0,3/0,-3/-1,-4/-3,0/3,0/0,-3/0,3/a"
     while (replaceWithDict(scramble, OPTIM) !== scramble) {
-        //optimize needed
+        // optimize needed
         let moves = scramble.split("/");
         // moves now in ["A","3,-3", "3,0", "a"]
         let atSlice = 0; // the index of the next move in "moves"
@@ -682,6 +682,16 @@ function OBLname(obl) {
 }
 
 function getLocalStorageData() {
+    // settings; in a string, 0 and 1 represent (un)checked, in order of settingList
+    // this goes before selecting OBLs because of eachCase.
+    const storageSettings = localStorage.getItem("settings");
+    if (storageSettings === null)
+        // legacy
+        localStorage.setItem("settings", "0".repeat(settingList.length));
+    else
+        for (let i = 0; i < settingList.length; i++)
+            if (storageSettings[i] === "1") settingList[i].click();
+
     // selectedOBL
     const storageSelectedOBL = localStorage.getItem("selectedOBL");
     if (storageSelectedOBL !== null) {
@@ -696,14 +706,6 @@ function getLocalStorageData() {
         updateSelCount();
         enableGoEachCase();
         generateScramble();
-        // if (selectedOBL.length != 0) {
-        //     for (let obl of possibleOBL) {
-        //         hideOBL(OBLname(obl));
-        //     }
-        //     for (let obl of selectedOBL) {
-        //         showOBL(obl);
-        //     }
-        // }
     }
 
     // userLists
@@ -711,30 +713,18 @@ function getLocalStorageData() {
     if (storageUserLists !== null) {
         userLists = JSON.parse(storageUserLists);
         // LEGACY: convert list to new array format
-        for (listName of Object.keys(userLists)) {
+        for (let listName of Object.keys(userLists)) {
             if (!Array.isArray(userLists[listName])) {
-                // legacy: add "spe" element
-                if (!Object.keys(userLists[listName]).includes("spe"))
-                    userLists[listName]["spe"] = 0;
                 console.log("Legacy user list");
-                let formattedList = [[], []]
-                for (let i of possibleOBL)
-                    if (userLists[listName][OBLname(i)] == 1)
-                        formattedList.push(OBLname(i));
-                userLists[list] = formattedList.copyWithin();
+                let formattedList = []
+                for (let obl of possibleOBL)
+                    if (userLists[listName][OBLname(obl)] == 1)
+                        formattedList.push(OBLname(obl));
+                userLists[listName] = [formattedList.copyWithin(), getSpeList(formattedList)];
             }
         }
         addUserLists();
     }
-
-    // settings; in a string, 0 and 1 represent (un)checked, in order of preferenceList
-    const storageSettings = localStorage.getItem("settings");
-    if (storageSettings === null)
-        // legacy
-        localStorage.setItem("settings", "0".repeat(settingList.length));
-    else
-        for (let i = 0; i < settingList.length; i++)
-            if (storageSettings[i] === "1") settingList[i].click();
 }
 
 function saveSelectedOBL() {
@@ -742,11 +732,6 @@ function saveSelectedOBL() {
     if (!usingSpe) 
         // good/bad → left/right
         selectedOBL[1] = [...getSpeList(selectedOBL[0])];
-        // for (let nonspe of selectedOBL[0]) {
-        //     for (spe of getSpe(nonspe)){
-        //         selectedOBL[1].push(spe);
-        //     }
-        // }
     else
         // left/right → good/bad
         selectedOBL[0] = [...getNonSpeList(selectedOBL[1])];
@@ -781,11 +766,8 @@ function setHighlightedList(id) {
         const item = document.getElementById(id);
         item.classList.add("highlighted");
     }
-    if (highlightedList != null) {
-        document
-            .getElementById(highlightedList)
-            .classList.remove("highlighted");
-    }
+    if (highlightedList != null)
+        document.getElementById(highlightedList).classList.remove("highlighted");
     highlightedList = id;
 }
 
@@ -794,9 +776,8 @@ function addListItemEvent(item) {
         if (item.classList.contains("highlighted")) {
             item.classList.remove("highlighted");
             highlightedList = null;
-        } else {
+        } else
             setHighlightedList(item.id);
-        }
     });
 }
 
@@ -806,11 +787,10 @@ function addCaseButtons() {
         caseEl.addEventListener("click", () => {
             const isChecked = caseEl.classList.contains("checked");
             n = caseEl.id;
-            if (isChecked) {
+            if (isChecked)
                 deselectOBL(n);
-            } else {
+            else
                 selectOBL(n);
-            }
             saveSelectedOBL();
         });
     });
@@ -835,9 +815,8 @@ function getSpe(obl) {
     for (let spec of OBLtranslation[obl]) {
         ret.push(spec);
         let spec2 = spec.split("/")[1] + "/" + spec.split("/")[0];
-        if (spec2 !== spec) {
+        if (spec2 !== spec)
             ret.push(spec2)
-        }
     }
     return ret;
 }
@@ -848,7 +827,7 @@ function getNonSpeList(l) {
     let ret_repeats = [];
     for (let obl of l)
         ret_repeats.push(getNonSpe(obl));
-    return [...new Set(ret_repeats)];
+    return [...new Set(ret_repeats)]; // dedupe the non-specific list that had repeats
 }
 
 function getSpeList(l) {
@@ -868,7 +847,7 @@ async function init() {
     for (let obl of possibleOBL) {
         buttons1 += `
         <div class="case" id="${OBLname(obl)}">${OBLname(obl)}</div>`;
-        for (spec of getSpe(OBLname(obl))) {
+        for (let spec of getSpe(OBLname(obl))) {
             buttons2 += `
         <div class="case" id="${spec}">${spec}</div>`;
         }
@@ -1061,7 +1040,7 @@ function generateScramble(regen=false) {
     currentCase = OBLChoice; // could be either good/bad or left/right
     OBLChoice = usingSpe ? OBLChoice : 
             OBLtranslation[OBLChoice][randInt(0, OBLtranslation[OBLChoice].length - 1)];
-    scramble = getScramble(OBLChoice);
+    scramble = getScramble(OBLChoice); // getScramble() takes in specific case naming
 
     // Add random begin and end layer moves
     let s = scramble[0].at(0);
@@ -1259,7 +1238,7 @@ function timerEndTouch(spaceEquivalent) {
 
 function addUserLists() {
     let content = "";
-    for (k of Object.keys(userLists)) {
+    for (let k of Object.keys(userLists)) {
         content += `
         <div id="${k}" class=\"list-item\">${k} (${
             userLists[k][usingSpe].length
@@ -1274,7 +1253,7 @@ function addUserLists() {
 
 function addDefaultLists() {
     let content = "";
-    for (k of Object.keys(defaultLists)) {
+    for (let k of Object.keys(defaultLists)) {
         content += `
         <div id="${k}" class=\"list-item\">${k} (${
             defaultLists[k][usingSpe].length
@@ -1286,7 +1265,7 @@ function addDefaultLists() {
     }
 }
 
-function selectList(listName, setSelection) { // TODO
+function selectList(listName, setSelection) {
     if (listName == null) {
         showAll();
         return;
@@ -1308,44 +1287,6 @@ function selectList(listName, setSelection) { // TODO
         selectThese();
     }
 
-    // let listSpe = list["spe"];
-    // // in this next part, func details what we do for each obl, and then we run a loop with it.
-    // let func;
-    // if (setSelection) {
-    //     deselectAll(); // deselect all then select cases that come up to map correctly
-    //     if (!listSpe) {
-    //         func = usingSpe ? 
-    //             (obl, inlist) => {
-    //                 for (let spe of getSpe(obl)) if (inlist) selectOBL(spe);
-    //             } : 
-    //             (obl, inlist) => {if (inlist) selectOBL(obl)};
-    //     }
-    //     else {
-    //         func = usingSpe ?
-    //             (obl, inlist) => {if (inlist) selectOBL(obl);} :
-    //             (obl, inlist) => {if (inlist) selectOBL(getNonSpe(obl));};
-    //     }
-    // } else {
-    //     hideAll(); // hide all then show cases that come up to map correctly
-    //     if (!listSpe){
-    //         func = usingSpe ?
-    //             (obl, inlist) => {
-    //                 for (spe of getSpe(obl)) if (inlist) showOBL(spe);
-    //             } :
-    //             (obl, inlist) => {if (inlist) showOBL(obl);};
-    //     }
-    //     else {
-    //         func = usingSpe ?
-    //             (obl, inlist) => {if (inlist) showOBL(getNonSpe(obl));} :
-    //             (obl, inlist) => {if (inlist) showOBL(obl);};
-    //     }
-    // }
-
-    // for (let [obl, inlist] of Object.entries(list)) {
-    //     if (obl === "spe") continue;
-    //     func(obl, inlist);
-    // }
-
     selCountEl.textContent = setSelection ? "Selected list: "+listName :
                                             "Viewing list: "+listName;
     saveSelectedOBL();
@@ -1353,7 +1294,7 @@ function selectList(listName, setSelection) { // TODO
 }
 
 function validName(n) {
-    for (l of n) {
+    for (let l of n) {
         if (
             l.toLowerCase() == l.toUpperCase() &&
             isNaN(parseInt(l)) &&
@@ -1869,7 +1810,7 @@ speEl.addEventListener("change", (e) => {
         filterInputEl.setAttribute("maxlength", 25);
         selectedOBL[1] = [];
         for (let nonspe of selectedOBL[0]) {
-            for (spe of getSpe(nonspe)){
+            for (let spe of getSpe(nonspe)){
                 selectedOBL[1].push(spe);
                 selectOBL(spe);
             }
