@@ -328,7 +328,7 @@ function addMoves(move1, move2) {
     }
     move1 = move1.split(",");
     move2 = move2.split(",");
-    result = [legalMove(parseInt(move1[0],10) + parseInt(move2[0],10)),
+    let result = [legalMove(parseInt(move1[0],10) + parseInt(move2[0],10)),
                 legalMove(parseInt(move1[1],10) + parseInt(move2[1],10))];
     return result.join(",");
 }
@@ -415,7 +415,7 @@ function getScramble(obl) {
                 isOBL(state.slice(LAYERL), d)) ||
                 (isOBL(state.slice(0,LAYERL), d) &&
                 isOBL(state.slice(LAYERL), u))) {
-                currentA = topA ? "A" : "a";
+                let currentA = topA ? "A" : "a";
                 moves += currentA;
                 console.log("preoptim moves "+moves);
                 moves = optimize(moves);
@@ -595,6 +595,7 @@ let remainingOBL = [[], []]; // [[oblidgood/bad], [oblidleft/right]]
 let eachCase = 0; // 0 = random, n = get each case n times before moving on
 let usingKarn = 0; // 0 = not using karn, etc.
 let usingSpe = 0; // 0 = not using specific naming, etc.
+let usingOBLP = false;
 let buttons = [];
 const MIN_EACHCASE = 2;
 const MAX_EACHCASE = 4;
@@ -638,7 +639,8 @@ const filterInputEl = document.getElementById("filter");
 const eachCaseEl = document.getElementById("allcases");
 const karnEl = document.getElementById("karn");
 const speEl = document.getElementById("specific");
-const settingList = [eachCaseEl, karnEl, speEl];
+const OBLPEl = document.getElementById("oblp");
+const settingList = [eachCaseEl, karnEl, speEl, OBLPEl];
 const removeLastEl = document.getElementById("unselprev");
 
 // Selection buttons
@@ -688,9 +690,14 @@ function getLocalStorageData() {
     if (storageSettings === null)
         // legacy
         localStorage.setItem("settings", "0".repeat(settingList.length));
-    else
-        for (let i = 0; i < settingList.length; i++)
+    else {
+        for (let i = 0; i < storageSettings.length; i++)
             if (storageSettings[i] === "1") settingList[i].click();
+        // add 0s if the settings is too short
+        while (localStorage.getItem("settings").length !== settingList.length) {
+            localStorage.setItem("settings", localStorage.getItem("settings") + "0")
+        }
+    }
 
     // selectedOBL
     const storageSelectedOBL = localStorage.getItem("selectedOBL");
@@ -786,7 +793,7 @@ function addCaseButtons() {
     document.querySelectorAll(".case").forEach((caseEl) => {
         caseEl.addEventListener("click", () => {
             const isChecked = caseEl.classList.contains("checked");
-            n = caseEl.id;
+            let n = caseEl.id;
             if (isChecked)
                 deselectOBL(n);
             else
@@ -963,8 +970,7 @@ function passesFilter(obl, filter) {
         let g = obl[0];
         let u = obl[1].toLowerCase();
         let d = obl[2].toLowerCase();
-        let result_from_good_bad;
-        let result_from_non_good_bad;
+        let result_from_good_bad, result_from_non_good_bad, a, b;
         if ("good".startsWith(filter[0])) {
             result_from_good_bad = checkFirstWord("good", g, filter, u, d);
         }
@@ -1017,7 +1023,9 @@ function generateScramble(regen=false) {
     if (scrambleOffset > 0 && !regen) {
         // user probably timed one of the prev scrams
         displayPrevScram();
-        currentScrambleEl.textContent = scrambleList.at(-1-scrambleOffset)[usingKarn];
+        let suffix = usingOBLP ? ` (${scrambleList.at(-1-scrambleOffset)[3]})` : "";
+        currentScrambleEl.textContent =
+            scrambleList.at(-1-scrambleOffset)[usingKarn] + suffix;
         return;
     }
     else if (scrambleOffset <= 0) scrambleOffset = 0;
@@ -1035,12 +1043,12 @@ function generateScramble(regen=false) {
         enableGoEachCase();
     }
     let caseNum = randInt(0, remainingOBL[usingSpe].length - 1);
-    OBLChoice = remainingOBL[usingSpe].splice(caseNum, 1)[0]; // OBLChoice: "good knight/axe"
+    let OBLChoice = remainingOBL[usingSpe].splice(caseNum, 1)[0]; // OBLChoice: "good knight/axe"
 
     currentCase = OBLChoice; // could be either good/bad or left/right
     OBLChoice = usingSpe ? OBLChoice : 
             OBLtranslation[OBLChoice][randInt(0, OBLtranslation[OBLChoice].length - 1)];
-    scramble = getScramble(OBLChoice); // getScramble() takes in specific case naming
+    let scramble = getScramble(OBLChoice); // getScramble() takes in specific case naming
 
     // Add random begin and end layer moves
     let s = scramble[0].at(0);
@@ -1068,10 +1076,18 @@ function generateScramble(regen=false) {
         currentCase
     ];
 
+    let cube = new window.cube();
+    cube.doMoves(final[0]);
+    let memo = cube.getMemo();
+    final.push(memo);
+
     if (regen) {
         scrambleList[scrambleList.length-1] = final;
         // set current scram only if we are on the current scram
-        if (scrambleOffset === 0) currentScrambleEl.textContent = final[usingKarn];
+        if (scrambleOffset === 0) {
+            let suffix = usingOBLP ? ` (${scrambleList.at(-1-scrambleOffset)[3]})` : "";
+            currentScrambleEl.textContent = final[usingKarn] + suffix;
+        }
     }
     else {
         if (scrambleList.length != 0) {
@@ -1079,7 +1095,8 @@ function generateScramble(regen=false) {
                 scrambleList.at(-1)[usingKarn] + " (" +
                 scrambleList.at(-1)[2] + ")";
         }
-        currentScrambleEl.textContent = final[usingKarn];
+        let suffix = usingOBLP ? ` (${memo})` : ""
+        currentScrambleEl.textContent = final[usingKarn] + suffix;
         scrambleList.push(final);
     }
     if (!hasActiveScramble) timerEl.textContent = "0.00"; // prob for first scram
@@ -1196,6 +1213,7 @@ function resetTimer(hidden) {
     }
     setColor("");
 }
+
 function timerBeginTouch(spaceEquivalent) {
     if (!hasActiveScramble) return;
     if (document.activeElement == filterInputEl) return;
@@ -1345,7 +1363,7 @@ function filterInput() {
     filterInputEl.value = filterInputEl.value.replace(/[^a-zA-Z1-4/\- ]+/g, "");
     setHighlightedList(null);
     document.querySelectorAll(".case").forEach((caseEl) => {
-        obl = caseEl.id;
+        let obl = caseEl.id;
         if (passesFilter(obl, filterInputEl.value)) {
             showOBL(obl);
         } else {
@@ -1446,8 +1464,10 @@ function prevScram() {
     if (usingTimer()) return;
     if (scrambleList.length == 0) return;
     scrambleOffset = Math.min(scrambleOffset + 1, scrambleList.length - 1);
+
+    let suffix = usingOBLP ? ` (${scrambleList.at(-1-scrambleOffset)[3]})` : "";
     currentScrambleEl.textContent =
-        scrambleList.at(-1-scrambleOffset)[usingKarn];
+        scrambleList.at(-1-scrambleOffset)[usingKarn] + suffix;
     displayPrevScram()
 }
 
@@ -1461,8 +1481,9 @@ function nextScram() {
         // scrambleOffset = 0;: this is already set in the function below
         generateScramble();
     } else {
+        let suffix = usingOBLP ? ` (${scrambleList.at(-1-scrambleOffset)[3]})` : "";
         currentScrambleEl.textContent =
-            scrambleList.at(-1-scrambleOffset)[usingKarn];
+            scrambleList.at(-1-scrambleOffset)[usingKarn] + suffix;
         displayPrevScram()
     }
 }
@@ -1671,7 +1692,7 @@ window.addEventListener("keydown", (e) => {
     }
 
     // backspace (remove last); left arrow (prev scram); right arrow (next scram)
-    if (!inInput) {
+    if (!inInput && !ctrl && !e.altKey && !e.shiftKey) {
         switch (e.key.toLowerCase()) {
             case "backspace":
                 e.preventDefault();
@@ -1696,6 +1717,10 @@ window.addEventListener("keydown", (e) => {
             case "s":
                 e.preventDefault();
                 speEl.click();
+                return;
+            case "p":
+                e.preventDefault();
+                OBLPEl.click();
                 return;
         }
     }
@@ -1839,9 +1864,15 @@ speEl.addEventListener("change", (e) => {
     saveSettings();
 });
 
+OBLPEl.addEventListener("change", (e) => {
+    usingOBLP = !usingOBLP;
+    let suffix = usingOBLP ? ` (${scrambleList.at(-1-scrambleOffset)[3]})` : "";
+    currentScrambleEl.textContent =
+        scrambleList.at(-1-scrambleOffset)[usingKarn] + suffix;
+    saveSettings();
+})
+
 // Enable crosses
 for (let cross of document.querySelectorAll(".cross")) {
     cross.addEventListener("click", () => closePopup());
 }
-
-
