@@ -1822,7 +1822,11 @@ removeLastEl.addEventListener("click", removeLast)
 
 karnEl.addEventListener("change", (e) => {
     usingKarn ^= 1; // switches between 0 and 1 with XOR
-    if (hasActiveScramble) currentScrambleEl.textContent = scrambleList.at(-1-scrambleOffset)[usingKarn];
+    if (hasActiveScramble) {
+        let suffix = usingOBLP ? ` (${scrambleList.at(-1-scrambleOffset)[3]})` : "";
+        currentScrambleEl.textContent =
+            scrambleList.at(-1-scrambleOffset)[usingKarn] + suffix;
+    };
     displayPrevScram();
     saveSettings();
 });
