@@ -639,7 +639,7 @@ const sidebarEl = document.getElementById("sidebar");
 const contentEl = document.getElementById("content");
 
 const OBLListEl = document.getElementById("results");
-const filterInputEl = document.getElementById("filter");
+const filterInputEl = document.getElementById("pbl-filter");
 
 const eachCaseEl = document.getElementById("allcases");
 const karnEl = document.getElementById("karn");
