@@ -1362,8 +1362,6 @@ function enableGoEachCase() {
     remainingOBL[usingSpe] = selectedOBL[usingSpe].flatMap((el) => Array(eachCase).fill(el));
 }
 
-init();
-
 function filterInput() {
     filterInputEl.value = filterInputEl.value.replace(/[^a-zA-Z1-4/\- ]+/g, "");
     setHighlightedList(null);
@@ -1875,9 +1873,11 @@ speEl.addEventListener("change", (e) => {
 
 OBLPEl.addEventListener("change", (e) => {
     usingOBLP = !usingOBLP;
-    let suffix = usingOBLP ? ` (${scrambleList.at(-1-scrambleOffset)[3]})` : "";
-    currentScrambleEl.textContent =
-        scrambleList.at(-1-scrambleOffset)[usingKarn] + suffix;
+    if (scrambleList.length !== 0) {
+        let suffix = usingOBLP ? ` (${scrambleList.at(-1-scrambleOffset)[3]})` : "";
+        currentScrambleEl.textContent =
+            scrambleList.at(-1-scrambleOffset)[usingKarn] + suffix;
+    }
     saveSettings();
 })
 
@@ -1885,3 +1885,5 @@ OBLPEl.addEventListener("change", (e) => {
 for (let cross of document.querySelectorAll(".cross")) {
     cross.addEventListener("click", () => closePopup());
 }
+
+init();
