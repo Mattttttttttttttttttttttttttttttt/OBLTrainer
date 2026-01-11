@@ -1025,7 +1025,7 @@ function passesFilter(obl, filter) {
 
 function generateScramble(regen=false) {
     let eachCaseAlert = false;
-    if (scrambleOffset > 0 && !regen) {
+    if (scrambleOffset >= 0 && !regen && scrambleList.length > 0) {
         // user probably timed one of the prev scrams
         displayPrevScram();
         let suffix = usingOBLP ? ` (${scrambleList.at(-1-scrambleOffset)[3]})` : "";
@@ -1033,7 +1033,7 @@ function generateScramble(regen=false) {
             scrambleList.at(-1-scrambleOffset)[usingKarn] + suffix;
         return;
     }
-    else if (scrambleOffset <= 0) scrambleOffset = 0;
+    else if (scrambleOffset < 0) scrambleOffset = 0;
     if (selectedOBL[usingSpe].length === 0) {
         timerEl.textContent = "--:--";
         currentScrambleEl.textContent = "Scramble will show up here";
