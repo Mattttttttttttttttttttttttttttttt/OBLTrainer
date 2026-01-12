@@ -688,24 +688,57 @@ function OBLname(obl) {
     return obl[0] ? `${obl[0]} ${obl[1]}/${obl[2]}` : `${obl[1]}/${obl[2]}`;
 }
 
+// localStorage wrapper with OBL suffix
+const STORAGE_SUFFIX = 'OBL';
+
+const storage = {
+    getItem: (key) => localStorage.getItem(key + STORAGE_SUFFIX),
+    setItem: (key, value) => localStorage.setItem(key + STORAGE_SUFFIX, value),
+    removeItem: (key) => localStorage.removeItem(key + STORAGE_SUFFIX)
+};
+
+// Migration function for legacy data
+function migrateLegacyData() {
+    const legacyKeys = ['settings', 'selected', 'userLists'];
+    let migrated = false;
+    
+    for (let key of legacyKeys) {
+        const legacyData = localStorage.getItem(key);
+        const newData = storage.getItem(key);
+        
+        // Only migrate if legacy data exists and new data doesn't
+        if (legacyData !== null && newData === null) {
+            storage.setItem(key, legacyData);
+            localStorage.removeItem(key); // Clean up old data
+            migrated = true;
+        }
+    }
+    
+    if (migrated) {
+        console.log('Migrated legacy OBL data to new storage format');
+    }
+}
+
 function getLocalStorageData() {
+    // Call migration before any other localStorage access
+    migrateLegacyData();
     // settings; in a string, 0 and 1 represent (un)checked, in order of settingList
     // this goes before selecting OBLs because of eachCase.
-    const storageSettings = localStorage.getItem("settings");
+    const storageSettings = storage.getItem("settings");
     if (storageSettings === null)
         // legacy
-        localStorage.setItem("settings", "0".repeat(settingList.length));
+        storage.setItem("settings", "0".repeat(settingList.length));
     else {
         for (let i = 0; i < storageSettings.length; i++)
             if (storageSettings[i] === "1") settingList[i].click();
         // add 0s if the settings is too short
-        while (localStorage.getItem("settings").length !== settingList.length) {
-            localStorage.setItem("settings", localStorage.getItem("settings") + "0")
+        while (storage.getItem("settings").length !== settingList.length) {
+            storage.setItem("settings", storage.getItem("settings") + "0")
         }
     }
 
     // selectedOBL
-    const storageSelectedOBL = localStorage.getItem("selectedOBL");
+    const storageSelectedOBL = storage.getItem("selected");
     if (storageSelectedOBL !== null) {
         selectedOBL = JSON.parse(storageSelectedOBL);
         if (selectedOBL.length === 0 || typeof selectedOBL[0] === "string"){
@@ -721,7 +754,7 @@ function getLocalStorageData() {
     }
 
     // userLists
-    const storageUserLists = localStorage.getItem("userLists");
+    const storageUserLists = storage.getItem("userLists");
     if (storageUserLists !== null) {
         userLists = JSON.parse(storageUserLists);
         // LEGACY: convert list to new array format
@@ -748,14 +781,14 @@ function saveSelectedOBL() {
         // left/right → good/bad
         selectedOBL[0] = [...getNonSpeList(selectedOBL[1])];
 
-    localStorage.setItem("selectedOBL", JSON.stringify(selectedOBL));
+    storage.setItem("selected", JSON.stringify(selectedOBL));
     // this is === 0 cuz genScram() has a if statement that deletes the scram if so
     if (!hasActiveScramble || selectedOBL[usingSpe].length === 0) generateScramble();
     else if (!(selectedOBL[usingSpe].includes(currentCase)) && currentCase != "") generateScramble(true);
 }
 
 function saveUserLists() {
-    localStorage.setItem("userLists", JSON.stringify(userLists));
+    storage.setItem("userLists", JSON.stringify(userLists));
 }
 
 function saveSettings() {
@@ -765,7 +798,7 @@ function saveSettings() {
             store += "1";
         else
             store += "0";
-    localStorage.setItem("settings", store);
+    storage.setItem("settings", store);
 }
 
 function updateSelCount() {
@@ -1025,7 +1058,7 @@ function passesFilter(obl, filter) {
 
 function generateScramble(regen=false) {
     let eachCaseAlert = false;
-    if (scrambleOffset >= 0 && !regen && scrambleList.length > 0) {
+    if (scrambleOffset >= 0 && !regen && scrambleList.length > 0 && selectedOBL[usingSpe].length !== 0) {
         // user probably timed one of the prev scrams
         displayPrevScram();
         let suffix = usingOBLP ? ` (${scrambleList.at(-1-scrambleOffset)[3]})` : "";
@@ -1777,7 +1810,11 @@ toggleUiEl.addEventListener("click", () => {
 
 downloadEl.addEventListener("click", () => {
     if (usingTimer()) return;
-    const data = JSON.stringify(localStorage);
+    const data = JSON.stringify({
+        'settingsOBL': storage.getItem('settings'),
+        'selectedOBL': storage.getItem('selected'),
+        'userListsOBL': storage.getItem('userLists')
+    });
     const blob = new Blob([data], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -1798,14 +1835,30 @@ fileEl.addEventListener("change", (e) => {
     const reader = new FileReader();
     reader.onload = () => {
         try {
+            deselectAll();
             jsonData = JSON.parse(reader.result);
-            localStorage.setItem("selectedOBL", jsonData["selectedOBL"]);
-            localStorage.setItem("userLists", jsonData["userLists"]);
-            if ("settings" in jsonData) localStorage.setItem("settings", jsonData["settings"]);
-            else alert("file formatting is outdated, re-export recommended.")
+            storage.setItem("selected", jsonData["selectedPBL"]);
+            
+            let outdated = false;
+            if ("userListsOBL" in jsonData) storage.setItem("userLists", jsonData["userListsOBL"]);
+            else if ("userLists" in jsonData) {
+                storage.setItem("userLists", jsonData["userLists"]);
+                outdated = true;
+            }
+            if ("settingsOBL" in jsonData) storage.setItem("settings", jsonData["settingsOBL"]);
+            else if ("settings" in jsonData) {
+                storage.setItem("settings", jsonData["settings"]);
+                outdated = true;
+            }
+            if (outdated) {
+                alert("File formatting is outdated, re-export recommended.");
+            }
             getLocalStorageData();
         } catch (e) {
             console.error("Error:", e);
+        } finally {
+            // Clear the file input so the same file can be selected again
+            e.target.value = '';
         }
     };
     reader.readAsText(file);
