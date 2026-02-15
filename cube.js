@@ -725,6 +725,10 @@ function getLocalStorageData() {
     // settings; in a string, 0 and 1 represent (un)checked, in order of settingList
     // this goes before selecting OBLs because of eachCase.
     const storageSettings = storage.getItem("settings");
+    // uncheck everything
+    for (let el of settingList) {
+        if (el.checked) el.click();
+    }
     if (storageSettings === null)
         // legacy
         storage.setItem("settings", "0".repeat(settingList.length));
