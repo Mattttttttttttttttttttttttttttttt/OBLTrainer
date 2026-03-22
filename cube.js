@@ -214,8 +214,8 @@ function isOBL(layer, obl) {
     for (let move = 0; move <= 3; move++) {
         if (target === shift(layer, 3*move)) return true;
     }
-    if (obl.split(" ").at(-1) !== "T" && obl.split(" ").at(-1) !== "tie") {   
-        // T and tie colors are specified 
+    if (obl.split(" ").at(-1) !== "T" && obl.split(" ").at(-1) !== "tie") {
+        // T and tie colors are specified
         layer = layer_flip(layer);
         for (let move = 0; move <= 3; move++) {
             if (target === shift(layer, 3*move)) return true;
@@ -238,7 +238,7 @@ function layer_flip(state){
 
     Args:
         state (str): the state (e.g. "BBbBBbWWwWWw")
-        
+
     Returns:
         str: the flipped state (e.g. "WWwWWwBBbBBb")
     `
@@ -274,7 +274,7 @@ function shift(a, amount) {
 
 function move(cube, u,d) {
     // u,d in int
-    return shift(cube.slice(0,LAYERL), u) + 
+    return shift(cube.slice(0,LAYERL), u) +
             shift(cube.slice(LAYERL), d)
 }
 
@@ -639,7 +639,7 @@ const sidebarEl = document.getElementById("sidebar");
 const contentEl = document.getElementById("content");
 
 const OBLListEl = document.getElementById("results");
-const filterInputEl = document.getElementById("pbl-filter");
+const filterInputEl = document.getElementById("obl-filter");
 
 const eachCaseEl = document.getElementById("allcases");
 const karnEl = document.getElementById("karn");
@@ -701,11 +701,11 @@ const storage = {
 function migrateLegacyData() {
     const legacyKeys = ['settings', 'selected', 'userLists'];
     let migrated = false;
-    
+
     for (let key of legacyKeys) {
         const legacyData = localStorage.getItem(key);
         const newData = storage.getItem(key);
-        
+
         // Only migrate if legacy data exists and new data doesn't
         if (legacyData !== null && newData === null) {
             storage.setItem(key, legacyData);
@@ -713,7 +713,7 @@ function migrateLegacyData() {
             migrated = true;
         }
     }
-    
+
     if (migrated) {
         console.log('Migrated legacy OBL data to new storage format');
     }
@@ -778,7 +778,7 @@ function getLocalStorageData() {
 
 function saveSelectedOBL() {
     // convert the selectedOBL to the other list
-    if (!usingSpe) 
+    if (!usingSpe)
         // good/bad → left/right
         selectedOBL[1] = [...getSpeList(selectedOBL[0])];
     else
@@ -931,7 +931,7 @@ function checkFirstWord(word, g, filter, u, d) {
     if (g != word) return false;
     else {
         // if user only typed word:
-        if (filter.length === 1 || filter[1] === "") 
+        if (filter.length === 1 || filter[1] === "")
             return true;
         else {
             a = filter[1]
@@ -982,9 +982,9 @@ function passesFilter(obl, filter) {
             case 3:
                 if (["left", "right"].includes(filter[0])) {
                     // "left knight gem" or "left knight left"
-                    return (u === filter[0]+" "+filter[1] && 
+                    return (u === filter[0]+" "+filter[1] &&
                             dlst.some((i) => i.startsWith(filter.at(-1)))) ||
-                            (d === filter[0]+" "+filter[1] && 
+                            (d === filter[0]+" "+filter[1] &&
                             ulst.some((i) => i.startsWith(filter.at(-1))));
                 }
                 else if (["left", "right"].includes(filter[1])) {
@@ -1027,7 +1027,7 @@ function passesFilter(obl, filter) {
             if (g != "diff") return false;
             else {
                 // if user typed "differ ":
-                if (!(["diff", "different"].includes(filter[0])) && filter.length > 1) 
+                if (!(["diff", "different"].includes(filter[0])) && filter.length > 1)
                     result_from_good_bad = false;
                 // if user only typed "different", "diff":
                 else if (filter.length === 1 || filter[1] === "")
@@ -1053,7 +1053,7 @@ function passesFilter(obl, filter) {
         }
         else {
             b = filter[1]
-            result_from_non_good_bad = (u == a && d.startsWith(b)) || 
+            result_from_non_good_bad = (u == a && d.startsWith(b)) ||
                     (d == a && u.startsWith(b));
         }
         return result_from_good_bad || result_from_non_good_bad;
@@ -1088,7 +1088,7 @@ function generateScramble(regen=false) {
     let OBLChoice = remainingOBL[usingSpe].splice(caseNum, 1)[0]; // OBLChoice: "good knight/axe"
 
     currentCase = OBLChoice; // could be either good/bad or left/right
-    OBLChoice = usingSpe ? OBLChoice : 
+    OBLChoice = usingSpe ? OBLChoice :
             OBLtranslation[OBLChoice][randInt(0, OBLtranslation[OBLChoice].length - 1)];
     let scramble = getScramble(OBLChoice); // getScramble() takes in specific case naming
 
@@ -1109,11 +1109,11 @@ function generateScramble(regen=false) {
     }
 
     let final = [
-        (start.join(",") + 
-            scramble[0].slice(1, -1) + 
+        (start.join(",") +
+            scramble[0].slice(1, -1) +
             end.join(",")).replaceAll("/", " / "),
-        start.join("") + 
-            scramble[1].slice(1, -1) + 
+        start.join("") +
+            scramble[1].slice(1, -1) +
             end.join(""),
         currentCase
     ];
@@ -1133,7 +1133,7 @@ function generateScramble(regen=false) {
     }
     else {
         if (scrambleList.length != 0) {
-            previousScrambleEl.textContent = "Previous scramble: " + 
+            previousScrambleEl.textContent = "Previous scramble: " +
                 scrambleList.at(-1)[usingKarn] + " (" +
                 scrambleList.at(-1)[2] + ")";
         }
@@ -1150,7 +1150,7 @@ function generateScramble(regen=false) {
 function displayPrevScram() {
     if (scrambleList.at(-2-scrambleOffset) !== undefined) {
         // we have a prev scram to display
-        previousScrambleEl.textContent = "Previous scramble: " + 
+        previousScrambleEl.textContent = "Previous scramble: " +
             scrambleList.at(-2-scrambleOffset)[usingKarn] + " (" +
             scrambleList.at(-2-scrambleOffset)[2] + ")";
     }
@@ -1602,7 +1602,7 @@ overwriteListEl.addEventListener("click", () => {
         newList[usingSpe] = selectedOBL[usingSpe].copyWithin();
         if (usingSpe) newList[0] = getNonSpeList(newList[1]);
         else newList[1] = getSpeList(newList[0]);
-        
+
         userLists[highlightedList] = newList;
         addUserLists();
         selectList(highlightedList, true);
@@ -1696,7 +1696,7 @@ window.addEventListener("keydown", (e) => {
             }
         }
         else {
-            // ctrl + 
+            // ctrl +
             switch (e.key.toLowerCase()) {
                 case "a":
                     if (!inInput) {
@@ -1727,7 +1727,7 @@ window.addEventListener("keydown", (e) => {
         }
     }
     else if (!ctrl && e.altKey && !e.shiftKey) {
-        // alt + 
+        // alt +
         switch (e.key.toLowerCase()) {
             case "a":
                 e.preventDefault();
@@ -1841,8 +1841,8 @@ fileEl.addEventListener("change", (e) => {
         try {
             deselectAll();
             jsonData = JSON.parse(reader.result);
-            storage.setItem("selected", jsonData["selectedPBL"]);
-            
+            storage.setItem("selected", jsonData["selectedOBL"]);
+
             let outdated = false;
             if ("userListsOBL" in jsonData) storage.setItem("userLists", jsonData["userListsOBL"]);
             else if ("userLists" in jsonData) {
